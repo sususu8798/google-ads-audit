@@ -1,0 +1,37 @@
+# 虚拟环境
+venv/
+.venv/
+env/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 项目本地数据（含 .workbuddy 记忆，不应入仓库）
+.workbuddy/
+
+# 环境变量与密钥
+.env
+
+# 日志与临时文件
+*.log
+/tmp/
+tmp/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 本地专用：macOS 启动器 / launchd plist（仅本机双击自启用，非部署所需）
+启动诊断工具.command
+安装永久自启.command
+com.workbuddy.googleadsaudit.plist
+
+# 本地专用：离线演示报告（非部署所需，体积大）
+sample_report.html
+report_Ad report.html
+
+# 本地专用：cloudflared 二进制（仅本机临时公网隧道用，非部署所需）
+tools/
