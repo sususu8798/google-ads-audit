@@ -57,6 +57,18 @@ class CheckRequest(BaseModel):
     ad_descriptions: Optional[List[str]] = None
 
 
+class BatchRequest(BaseModel):
+    urls: List[str]
+    industry: Optional[str] = None
+    country: Optional[str] = None
+    language: Optional[str] = None
+    goal: Optional[str] = None
+    product: Optional[str] = None
+    keywords: Optional[List[str]] = None
+    ad_headlines: Optional[List[str]] = None
+    ad_descriptions: Optional[List[str]] = None
+
+
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "weights": {k: w for k, _, w in config.settings.dimensions}}
@@ -71,6 +83,29 @@ async def check_url(req: CheckRequest):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return JSONResponse(content=report)
+
+
+@app.post("/api/check-urls")
+async def check_urls(req: BatchRequest):
+    raw = [u.strip() for u in (req.urls or []) if u and u.strip()]
+    if not raw:
+        raise HTTPException(status_code=400, detail="至少提供 1 个 URL")
+    # 去重（保留首次出现顺序，忽略大小写）
+    seen, dedup = set(), []
+    for u in raw:
+        ku = u.lower()
+        if ku in seen:
+            continue
+        seen.add(ku)
+        dedup.append(u)
+    MAX = 200
+    if len(dedup) > MAX:
+        raise HTTPException(status_code=400, detail=f"URL 数量超出上限（{MAX}），请改用「广告报表分析」上传")
+    try:
+        data = await audit.analyze_url_list(dedup, req.model_dump())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return JSONResponse(content=data)
 
 
 @app.post("/api/analyze-report")
