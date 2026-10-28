@@ -1,0 +1,13 @@
+# Render 一键部署配置：在 Render 控制台连上本仓库后，
+# 选 "Use render.yaml" 或 New → Web Service 时 Render 会自动读这份文件，
+# 无需手动填 Build/Start 命令。Python 版本由 runtime.txt（python-3.12）决定。
+services:
+  - type: web
+    name: google-ads-audit
+    runtime: python
+    plan: free
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    healthCheckPath: /api/health
+    # Render 会自动注入 PORT；本工具读取 $PORT 绑定，无需在此写端口。
