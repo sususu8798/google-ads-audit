@@ -20,6 +20,7 @@
   <div class="wrap">
     <div class="tabs">
       <div class="tab active" data-tab="single">单 URL 检测</div>
+      <div class="tab" data-tab="batch">多条 URL</div>
       <div class="tab" data-tab="report">广告报表分析</div>
     </div>
 
@@ -54,6 +55,39 @@
         </div>
       </div>
       <div id="su-result"></div>
+    </section>
+
+    <!-- ============ 多条 URL 批量检测 ============ -->
+    <section id="batch" class="hidden">
+      <div class="panel">
+        <div class="section-title"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> 批量提交落地页 URL</div>
+        <div class="section-sub">每行一个网址，系统将逐一安全抓取并诊断；结果与「单 URL 检测」同口径。</div>
+        <div class="grid">
+          <div class="field full">
+            <label>落地页 URL 列表 <span class="opt">（每行一个，必填）</span></label>
+            <textarea id="bt-urls" rows="9" placeholder="https://www.example.com/product/p1&#10;https://www.example.com/product/p2&#10;https://www.example.com/product/p3"></textarea>
+            <span class="hint">自动去除空行与重复；建议 ≤ 50 条，URL 更多请使用「广告报表分析」。</span>
+          </div>
+        </div>
+        <details class="adv">
+          <summary>补充广告上下文<span class="opt">（可选，统一应用于全部 URL，启用「广告—页面相关性」联合诊断）</span></summary>
+          <div class="grid">
+            <div class="field"><label>行业</label><input type="text" id="bt-industry" placeholder="如：化工 / 机械 / SaaS"></div>
+            <div class="field"><label>目标国家/地区</label><input type="text" id="bt-country" placeholder="如：美国 / 欧洲"></div>
+            <div class="field"><label>页面语言</label><input type="text" id="bt-language" placeholder="如：英语 / 中文"></div>
+            <div class="field"><label>目标转化</label><input type="text" id="bt-goal" placeholder="如：询盘 / 电话 / 下载"></div>
+            <div class="field full"><label>主要产品</label><input type="text" id="bt-product" placeholder="如：分子筛 3A"></div>
+            <div class="field full"><label>关键词 <span class="opt">（逗号分隔，可选）</span></label><input type="text" id="bt-keywords" placeholder="molecular sieve, 3A zeolite"></div>
+            <div class="field full"><label>广告标题 <span class="opt">（每行一条，可选，启用联合诊断）</span></label><textarea id="bt-headlines" placeholder="High Quality Molecular Sieve&#10;Factory Price 13X Zeolite"></textarea></div>
+            <div class="field full"><label>广告描述 <span class="opt">（每行一条，可选）</span></label><textarea id="bt-descriptions" placeholder="Supply molecular sieve with competitive price.&#10;ISO certified for PSA."></textarea></div>
+          </div>
+        </details>
+        <div class="actions">
+          <button class="btn" id="bt-submit">开始批量检测</button>
+          <button class="btn secondary" id="bt-clear">清空</button>
+        </div>
+      </div>
+      <div id="bt-result"></div>
     </section>
 
     <!-- ============ 报表分析 ============ -->
