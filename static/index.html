@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google Ads 落地页质量诊断工具</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="topbar">
+    <div class="logo"><svg class="ico" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+    <div>
+      <h1>Google Ads 落地页质量诊断</h1>
+      <p>以广告数据为线索 · 以页面证据为基础 · 以可执行整改为落点</p>
+    </div>
+    <span class="badge-env">MVP · 真实检测</span>
+    <span id="api-status" class="api-status" title="后端服务连接状态"><span class="dot"></span>检测中…</span>
+  </div>
+
+  <div class="wrap">
+    <div class="tabs">
+      <div class="tab active" data-tab="single">单 URL 检测</div>
+      <div class="tab" data-tab="report">广告报表分析</div>
+    </div>
+
+    <!-- ============ 单 URL 检测 ============ -->
+    <section id="single">
+      <div class="panel">
+        <div class="section-title"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> 提交落地页 URL</div>
+        <div class="section-sub">输入要诊断的落地页地址，可选补充广告上下文以启用「广告—页面相关性」联合诊断。</div>
+        <div class="grid">
+          <div class="field full">
+            <label>落地页 URL <span class="opt">（必填）</span></label>
+            <input type="url" id="su-url" placeholder="https://www.example.com/product/p1">
+            <span class="hint">系统将进行 SSRF 安全校验后抓取页面，仅支持 http/https 公网地址。</span>
+          </div>
+        </div>
+        <details class="adv">
+          <summary>补充广告上下文<span class="opt">（可选，填写后启用「广告—页面相关性」联合诊断）</span></summary>
+          <div class="grid">
+            <div class="field"><label>行业</label><input type="text" id="su-industry" placeholder="如：化工 / 机械 / SaaS"></div>
+            <div class="field"><label>目标国家/地区</label><input type="text" id="su-country" placeholder="如：美国 / 欧洲"></div>
+            <div class="field"><label>页面语言</label><input type="text" id="su-language" placeholder="如：英语 / 中文"></div>
+            <div class="field"><label>目标转化</label><input type="text" id="su-goal" placeholder="如：询盘 / 电话 / 下载"></div>
+            <div class="field full"><label>主要产品</label><input type="text" id="su-product" placeholder="如：分子筛 3A"></div>
+            <div class="field full"><label>关键词 <span class="opt">（逗号分隔，可选）</span></label><input type="text" id="su-keywords" placeholder="molecular sieve, 3A zeolite"></div>
+            <div class="field full"><label>广告标题 <span class="opt">（每行一条，可选，启用联合诊断）</span></label><textarea id="su-headlines" placeholder="High Quality Molecular Sieve&#10;Factory Price 13X Zeolite"></textarea></div>
+            <div class="field full"><label>广告描述 <span class="opt">（每行一条，可选）</span></label><textarea id="su-descriptions" placeholder="Supply molecular sieve with competitive price.&#10;ISO certified for PSA."></textarea></div>
+          </div>
+        </details>
+        <div class="actions">
+          <button class="btn" id="su-submit">开始检测</button>
+          <button class="btn secondary" id="su-clear">清空</button>
+        </div>
+      </div>
+      <div id="su-result"></div>
+    </section>
+
+    <!-- ============ 报表分析 ============ -->
+    <section id="report" class="hidden">
+      <div class="panel">
+        <div class="section-title"><svg class="ico" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg> 上传 Google Ads 报表</div>
+        <div class="section-sub">支持 CSV / XLSX。自动跳过前置元数据行、识别 60 列表头、按 URL 正确聚合。</div>
+        <div class="dropzone" id="dz">
+          <div class="ic"><svg class="ico" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+          <h3>拖拽文件到此处，或点击选择</h3>
+          <p>Google Ads 搜索广告导出报表（含 Final URL / Campaign / Clicks 等字段）</p>
+          <div class="formats">支持 .csv / .xlsx ｜ 单文件建议 ≤ 20MB</div>
+          <input type="file" id="file-input" accept=".csv,.xlsx,.xls" class="hidden">
+        </div>
+        <div class="actions">
+          <button class="btn" id="rp-submit" disabled>解析并执行联合诊断</button>
+        </div>
+      </div>
+      <div id="rp-preview"></div>
+      <div id="rp-result"></div>
+    </section>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
