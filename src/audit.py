@@ -266,6 +266,62 @@ def analyze_page_with_input(url: str, inputs: dict) -> dict:
     return _single_report(url, inputs)
 
 
+async def analyze_pages(urls: list, ad: Optional[AdContext], concurrency: int, deep: bool) -> list:
+    """并发抓取并分析多个页面，返回与 _analyze_page_async 同构的结果列表。"""
+    sem = asyncio.Semaphore(concurrency)
+    limits = httpx.Limits(max_connections=concurrency)
+    async with httpx.AsyncClient(
+        timeout=httpx.Timeout(config.settings.fetch_timeout),
+        follow_redirects=False,
+        headers={"User-Agent": config.settings.user_agent},
+        verify=True, limits=limits,
+    ) as client:
+        async def one(u):
+            async with sem:
+                return await _analyze_page_async(u, ad, client, deep)
+        return await asyncio.gather(*[one(u) for u in urls])
+
+
+async def analyze_url_list(urls: list, inputs: dict, concurrency: int = 4) -> dict:
+    """多条 URL 批量检测：统一可选广告上下文，逐一抓取分析并汇总概览。
+
+    - 少量 URL（≤5）开启站内相似度抽样（CONT-006），与单 URL 检测同口径；
+      量大时关闭抽样以提速（与报表模式一致）。
+    - 不聚合广告花费指标（那属于报表模式），每条 URL 独立评分与优先级。
+    """
+    ad = None
+    if inputs.get("ad_headlines") or inputs.get("ad_descriptions") or inputs.get("keywords"):
+        ad = AdContext(
+            headlines=inputs.get("ad_headlines") or [],
+            descriptions=inputs.get("ad_descriptions") or [],
+            keywords=inputs.get("keywords") or [],
+        )
+    deep = len(urls) <= 5
+    pages = await analyze_pages(urls, ad, max(1, min(concurrency, len(urls))), deep)
+    scs = [p["score"]["overall_score"] for p in pages
+           if (p.get("score") or {}).get("overall_score") is not None]
+    summary = {
+        "total": len(pages),
+        "fetch_ok": sum(1 for p in pages if (p.get("fetch") or {}).get("ok")),
+        "avg_score": round(sum(scs) / len(scs), 1) if scs else None,
+        "grade_counts": {},
+        "prio_counts": {},
+    }
+    for p in pages:
+        lv = ((p.get("score") or {}).get("grade") or {}).get("level")
+        if lv:
+            summary["grade_counts"][lv] = summary["grade_counts"].get(lv, 0) + 1
+        pr = (p.get("priority") or {}).get("priority")
+        if pr:
+            summary["prio_counts"][pr] = summary["prio_counts"].get(pr, 0) + 1
+    return {
+        "type": "batch",
+        "urls": pages,
+        "summary": summary,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
 def _single_report(url: str, inputs: dict) -> dict:
     ad = None
     if inputs.get("ad_headlines") or inputs.get("ad_descriptions") or inputs.get("keywords"):
