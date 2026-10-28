@@ -103,6 +103,7 @@ $$(".tab").forEach(t => t.addEventListener("click", () => {
   const tab = t.dataset.tab;
   $("#single").classList.toggle("hidden", tab !== "single");
   $("#report").classList.toggle("hidden", tab !== "report");
+  $("#batch").classList.toggle("hidden", tab !== "batch");
 }));
 
 /* ============================================================
@@ -556,6 +557,180 @@ $("#rp-submit").addEventListener("click", async () => {
   } catch (e) {
     $("#rp-preview").innerHTML = `<div class="panel"><div class="notice error">${fetchErrMsg(e)}</div></div>`;
   }
+});
+
+/* ============================================================
+   多条 URL 批量检测
+============================================================ */
+const COLS_BATCH = [
+  ["final_url", "落地页 URL", "url"], ["page_score", "页面分", "score"],
+  ["status", "抓取", "status"], ["priority", "优先级", "priority"]
+];
+let batchUrls = [];
+let batchSortKey = "page_score", batchSortDir = -1;
+
+function prioBadge(p) {
+  if (!p) return badge("P3", "—");
+  return badge(p.priority || "P3", esc(p.label || p.priority));
+}
+
+function batchSort() {
+  const k = batchSortKey;
+  const rk = { "P0": 4, "P1": 3, "P2": 2, "P3": 1 };
+  batchUrls.sort((a, b) => {
+    let va, vb;
+    if (k === "page_score") { va = a.score && a.score.overall_score != null ? a.score.overall_score : -1; vb = b.score && b.score.overall_score != null ? b.score.overall_score : -1; }
+    else if (k === "status") { va = a.fetch && a.fetch.ok ? 1 : 0; vb = b.fetch && b.fetch.ok ? 1 : 0; }
+    else if (k === "priority") { va = (a.priority && rk[a.priority.priority]) || 0; vb = (b.priority && rk[b.priority.priority]) || 0; }
+    else { va = a.final_url; vb = b.final_url; return batchSortDir * String(va).localeCompare(String(vb)); }
+    return batchSortDir * (va - vb);
+  });
+}
+
+function renderBatchTable() {
+  const urls = batchUrls;
+  const head = `<tr>${COLS_BATCH.map(c => `<th data-k="${c[0]}">${c[1]} ${batchSortKey === c[0] ? (batchSortDir < 0 ? "▼" : "▲") : ""}</th>`).join("")}</tr>`;
+  const body = urls.map((u, i) => {
+    const sc = (u.score && u.score.overall_score != null) ? Math.round(u.score.overall_score) : "—";
+    const scCls = u.score && u.score.overall_score != null ? (u.score.overall_score >= 80 ? "pass" : u.score.overall_score >= 60 ? "medium" : "fail") : "not_applicable";
+    const status = u.fetch && u.fetch.ok ? icon("checkCircle", 14) : icon("alert", 14);
+    return `<tr data-i="${i}">
+      <td class="url-cell"><div class="url-wrap">
+        <span class="row-arrow" data-i="${i}" title="展开明细">${icon("chevR", 13)}</span>
+        <span class="url-link" title="${esc(u.final_url)}" data-i="${i}">${esc(u.final_url)}</span>
+        <a class="open-link" href="${esc(u.final_url)}" target="_blank" rel="noopener" title="在新标签页打开该落地页" onclick="event.stopPropagation()">打开 ↗</a>
+        <a class="open-link copy-link" data-copy-url="${esc(u.final_url)}" title="复制完整链接" onclick="event.stopPropagation()">复制</a>
+      </div></td>
+      <td class="nowrap">${badge(scCls, sc)}</td>
+      <td class="nowrap">${status}</td>
+      <td class="nowrap">${prioBadge(u.priority)}</td>
+    </tr>
+    <tr class="expand-row hidden" data-exp="${i}"><td colspan="${COLS_BATCH.length}"><div class="expand-inner" id="bt-exp-${i}"></div></td></tr>`;
+  }).join("");
+  $("#bt-table").innerHTML = `<div class="table-wrap"><table>${head}${body}</table></div>`;
+  $$("#bt-table th").forEach(th => th.addEventListener("click", () => {
+    const k = th.dataset.k;
+    if (batchSortKey === k) batchSortDir *= -1; else { batchSortKey = k; batchSortDir = -1; }
+    batchSort(); renderBatchTable();
+  }));
+  $$("#bt-table .url-link, #bt-table .row-arrow").forEach(el => el.addEventListener("click", () => {
+    const i = el.dataset.i;
+    const row = $(`#bt-table tr[data-i="${i}"]`);
+    const exp = $(`#bt-table .expand-row[data-exp="${i}"]`);
+    const inner = $(`#bt-exp-${i}`);
+    const isHidden = exp.classList.contains("hidden");
+    $$("#bt-table .expand-row").forEach(o => {
+      if (o !== exp && !o.classList.contains("hidden")) {
+        o.classList.add("hidden");
+        const orow = $(`#bt-table tr[data-i="${o.dataset.exp}"]`);
+        if (orow) orow.classList.remove("open");
+      }
+    });
+    if (isHidden) {
+      exp.classList.remove("hidden");
+      row.classList.add("open");
+      renderExpand(inner, batchUrls[i], i);
+    } else { exp.classList.add("hidden"); row.classList.remove("open"); }
+  }));
+  $$("#bt-table .copy-link").forEach(el => el.addEventListener("click", () => {
+    copyTextToClipboard(el.dataset.copyUrl, el);
+  }));
+}
+
+function batchApplyFilters() {
+  const q = ($("#bt-search").value || "").toLowerCase();
+  $$("#bt-table tbody tr").forEach(tr => {
+    if (tr.classList.contains("expand-row")) return;
+    const i = tr.dataset.i;
+    const u = batchUrls[i];
+    const hit = !q || (u.final_url || "").toLowerCase().includes(q);
+    tr.style.display = hit ? "" : "none";
+  });
+}
+
+function renderBatch(data) {
+  const s = data.summary || {};
+  const prioHi = (s.prio_counts && ((s.prio_counts.P0 || 0) + (s.prio_counts.P1 || 0))) || 0;
+  $("#bt-result").innerHTML = `
+    <div class="panel">
+      <div class="section-title">${icon("target", 17)} 批量检测概览</div>
+      <div class="section-sub">共提交 ${s.total} 个 URL，按页面分 / 优先级排序。点击 URL 展开明细（证据 / 页面概览 / 问题清单）。</div>
+      <div class="stat-grid">
+        <div class="stat"><div class="k">URL 数</div><div class="v">${s.total}</div></div>
+        <div class="stat"><div class="k">抓取成功</div><div class="v">${s.fetch_ok ?? "—"}</div></div>
+        <div class="stat"><div class="k">平均页面分</div><div class="v">${s.avg_score ?? "—"}</div></div>
+        <div class="stat"><div class="k">紧急 / 高优先级</div><div class="v">${prioHi}</div></div>
+      </div>
+      <div class="table-tools">
+        <input type="text" class="search-input" id="bt-search" placeholder="搜索 URL…">
+        <span class="muted-block" id="bt-count"></span>
+      </div>
+      <div id="bt-table"></div>
+      <div class="export-bar">
+        <button class="btn secondary" id="bt-export-csv">导出问题清单 (CSV)</button>
+      </div>
+    </div>`;
+  batchUrls = data.urls || [];
+  batchSort(); renderBatchTable();
+  $("#bt-count").textContent = `共 ${batchUrls.length} 个 URL`;
+  $("#bt-search").addEventListener("input", batchApplyFilters);
+  $("#bt-export-csv").addEventListener("click", () => exportBatchCSV(data));
+  $("#bt-result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function exportBatchCSV(data) {
+  const rows = [["URL", "页面分", "优先级", "规则ID", "标题", "严重度", "依据类型", "状态", "整改责任人", "证据", "修复建议"]];
+  (data.urls || []).forEach(u => {
+    const sc = u.score && u.score.overall_score != null ? Math.round(u.score.overall_score) : "N/A";
+    const pr = (u.priority && u.priority.label) || "";
+    (u.findings || []).forEach(f => {
+      const ev = (f.evidence || []).map(e => `${e.source}: ${e.text}`).join(" | ");
+      const rec = (f.recommendation || []).join("; ");
+      rows.push([u.final_url, sc, pr, f.rule_id, f.title, f.severity, f.basis_label, STATUS_TXT[f.status] || f.status, f.owner || "网建人员", ev, rec]);
+    });
+  });
+  const csv = rows.map(r => r.map(c => {
+    const s = String(c == null ? "" : c);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }).join(",")).join("\n");
+  const safe = csv.replace(/^([=+\-@])/gm, "'$1");
+  const blob = new Blob(["\ufeff" + safe], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "落地页批量诊断问题清单.csv";
+  a.click();
+}
+
+$("#bt-submit").addEventListener("click", async () => {
+  const raw = $("#bt-urls").value.split("\n").map(s => s.trim()).filter(Boolean);
+  if (!raw.length) { alert("请至少填写一个落地页 URL"); return; }
+  const payload = {
+    urls: raw,
+    industry: $("#bt-industry").value.trim() || null,
+    country: $("#bt-country").value.trim() || null,
+    language: $("#bt-language").value.trim() || null,
+    goal: $("#bt-goal").value.trim() || null,
+    product: $("#bt-product").value.trim() || null,
+    keywords: $("#bt-keywords").value.split(",").map(s => s.trim()).filter(Boolean) || null,
+    ad_headlines: $("#bt-headlines").value.split("\n").map(s => s.trim()).filter(Boolean) || null,
+    ad_descriptions: $("#bt-descriptions").value.split("\n").map(s => s.trim()).filter(Boolean) || null,
+  };
+  $("#bt-result").innerHTML = `<div class="panel"><div class="loading"><div class="spinner"></div>正在安全抓取并分析 ${raw.length} 个页面…（URL 较多时可能需要数十秒）</div></div>`;
+  try {
+    const res = await apiFetch("/api/check-urls", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "检测失败");
+    renderBatch(data);
+  } catch (e) {
+    $("#bt-result").innerHTML = `<div class="panel"><div class="notice error">${fetchErrMsg(e)}</div></div>`;
+  }
+});
+
+$("#bt-clear").addEventListener("click", () => {
+  ["bt-urls", "bt-industry", "bt-country", "bt-language", "bt-goal", "bt-product", "bt-keywords", "bt-headlines", "bt-descriptions"].forEach(id => $("#" + id).value = "");
+  $("#bt-result").innerHTML = "";
 });
 
 /* 网络层错误（Failed to fetch）多半是后端服务未启动或页面为旧缓存，给出明确指引 */
