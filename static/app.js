@@ -288,9 +288,9 @@ async function copyTextToClipboard(text, btn) {
     } catch (e2) { ok = false; }
   }
   if (btn) {
-    const old = btn.textContent;
-    btn.textContent = ok ? "已复制 ✓" : "复制失败，请手动选择";
-    setTimeout(() => { btn.textContent = old; }, 1600);
+    const old = btn.innerHTML;
+    btn.innerHTML = ok ? "已复制 ✓" : "复制失败，请手动选择";
+    setTimeout(() => { btn.innerHTML = old; }, 1600);
   }
 }
 
@@ -347,7 +347,11 @@ function renderSingle(r) {
   </div>
 
   <div class="panel">
-    <div class="section-title">${icon("search", 17)} 问题清单与证据</div>
+    <div class="panel-head">
+      <div class="section-title">${icon("search", 17)} 问题清单与证据</div>
+      ${(r.findings || []).some(f => f.status === "fail" || f.status === "not_detected")
+        ? `<button class="btn copy-top" id="su-copy-top">${icon("clipboard", 16)} 复制整改项</button>` : ""}
+    </div>
     <div id="su-dim-detail"></div>
     <details class="fold fold-inline" id="su-findings-fold">
       <summary class="subhead">完整证据与整改建议（点击展开）</summary>
@@ -356,6 +360,11 @@ function renderSingle(r) {
   </div>`;
   findingsBlock(r.findings || [], "#su-findings", null, (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || "");
   renderAllDimDetails(r);
+  // 面板右上角大按钮：复制整改项（未达标 + 需人工核对）
+  const topCopy = $("#su-copy-top");
+  if (topCopy) topCopy.addEventListener("click", () => {
+    copyTextToClipboard(buildCopyText(r.findings || [], ["fail", "not_detected"], (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || ""), topCopy);
+  });
   box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
