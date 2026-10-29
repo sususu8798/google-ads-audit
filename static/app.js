@@ -187,7 +187,7 @@ function dimDetailHTML(dim, findings, dims) {
   return head
     + (DIM_DESC[dim] ? `<div class="dd-desc">${esc(DIM_DESC[dim])}</div>` : "")
     + `<div class="dd-list">${rows}</div>
-       <div class="dd-hint">点击任一条目可跳转到下方完整证据与整改建议 · 再点上方维度卡恢复全部</div>`;
+       <div class="dd-hint">点击任一条目可展开并跳转到完整证据 · 再点上方维度卡恢复全部</div>`;
 }
 
 /* 维度卡 → 问题清单联动：点击后仅显示该维度检测项并定位；再点一次恢复全部 */
@@ -214,11 +214,13 @@ function bindDimNav(result) {
     });
     const dd = $("#su-dim-detail");
     dd.innerHTML = dimDetailHTML(dim, findings, dims);
-    // 条目点击 → 跳到对应完整证据卡并高亮
+    // 条目点击 → 展开折叠区并跳到对应完整证据卡高亮
     $$(".dd-item", dd).forEach(item => item.addEventListener("click", () => {
       const dimCards = cards.filter(el => el.dataset.dim === dim);
       const target = dimCards[+item.dataset.i];
       if (target) {
+        const fold = $("#su-findings-fold");
+        if (fold) fold.open = true;
         target.scrollIntoView({ behavior: "smooth", block: "center" });
         target.classList.add("dim-flash");
         setTimeout(() => target.classList.remove("dim-flash"), 2000);
@@ -404,7 +406,10 @@ function renderSingle(r) {
   <div class="panel">
     <div class="section-title">${icon("search", 17)} 问题清单与证据</div>
     <div id="su-dim-detail"></div>
-    <div id="su-findings"></div>
+    <details class="fold fold-inline" id="su-findings-fold">
+      <summary class="subhead">完整证据与整改建议（点击展开）</summary>
+      <div id="su-findings"></div>
+    </details>
   </div>`;
   findingsBlock(r.findings || [], "#su-findings", null, (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || "");
   bindDimNav(r);
