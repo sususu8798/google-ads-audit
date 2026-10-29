@@ -207,6 +207,9 @@ td .ico, th .ico { vertical-align: -2.5px; }
 /* 维度定位详情（webuup 式条目清单）：维度名+得分+说明+绿勾/红标清单 */
 #su-dim-detail { margin: 2px 0 16px; }
 #su-dim-detail:empty { display: none; margin: 0; }
+/* 全维度依次展示：块间用细分割线区隔 */
+.dd-block { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+.dd-block:last-child { padding-bottom: 0; margin-bottom: 0; border-bottom: none; }
 .dd-head { display: flex; justify-content: center; align-items: baseline; gap: 12px; font-size: 16px; margin-bottom: 8px; }
 .dd-head .dd-name { font-weight: 700; }
 .dd-head .dd-score { font-size: 13.5px; color: var(--text-faint); font-weight: 600; }
