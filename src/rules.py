@@ -266,7 +266,12 @@ def _r_h1(p: PageData, ad: Optional[AdContext]):
         return "fail", [ev("h1", "页面缺少 H1 标题")], ["添加清晰描述核心产品或服务的 H1"], 0.85
     if len(p.h1_list) == 1:
         return "pass", [ev("h1", p.h1_list[0][:120])], ["保持单一明确的主标题"], 0.8
-    return "fail", [ev("h1", f"存在 {len(p.h1_list)} 个 H1，结构不清晰")], ["合并为单一主 H1，其余用 H2/H3 层级化"], 0.75
+    # 多个 H1：逐条列出原文，便于直接定位要合并的元素
+    evids = [ev("h1", f"共 {len(p.h1_list)} 个 H1：")]
+    evids += [ev("h1", f"第 {i+1} 个 H1：{t[:100]}") for i, t in enumerate(p.h1_list[:8])]
+    if len(p.h1_list) > 8:
+        evids.append(ev("h1", f"…另有 {len(p.h1_list) - 8} 个未列出"))
+    return "fail", evids, ["合并为单一主 H1，其余用 H2/H3 层级化"], 0.75
 
 
 def _r_body_len(p: PageData, ad: Optional[AdContext]):
