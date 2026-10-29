@@ -204,6 +204,29 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dim-warn { color: var(--amber); }
 @media (max-width: 560px) { .dim-grid { grid-template-columns: 1fr; } }
 
+/* 维度定位详情（webuup 式条目清单）：维度名+得分+说明+绿勾/红标清单 */
+#su-dim-detail { margin: 2px 0 16px; }
+#su-dim-detail:empty { display: none; margin: 0; }
+.dd-head { display: flex; justify-content: center; align-items: baseline; gap: 12px; font-size: 16px; margin-bottom: 8px; }
+.dd-head .dd-name { font-weight: 700; }
+.dd-head .dd-score { font-size: 13.5px; color: var(--text-faint); font-weight: 600; }
+.dd-head .dd-score b { font-size: 22px; font-weight: 700; }
+.dd-bar { max-width: 380px; margin: 0 auto; }
+.dd-desc { font-size: 12px; color: var(--text-soft); text-align: center; margin-top: 8px; }
+.dd-list { margin-top: 10px; display: flex; flex-direction: column; }
+.dd-item { display: flex; gap: 12px; padding: 10px 10px; border-top: 1px solid var(--border); cursor: pointer; border-radius: 6px; align-items: flex-start; }
+.dd-item:first-child { border-top: none; }
+.dd-item:hover { background: var(--surface-2); }
+.dd-ic { flex: none; display: flex; padding-top: 1px; }
+.dd-item.ok .dd-ic { color: var(--green); }
+.dd-item.bad .dd-ic, .dd-item.bad .dd-t { color: var(--red); }
+.dd-item.warn .dd-ic, .dd-item.warn .dd-t { color: var(--amber); }
+.dd-item.na .dd-ic, .dd-item.na .dd-t { color: var(--text-faint); }
+.dd-t { font-size: 13.5px; font-weight: 700; }
+.dd-d { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+.dd-hint { font-size: 11.5px; color: var(--text-faint); text-align: center; margin-top: 8px; }
+.finding.dim-flash { box-shadow: 0 0 0 2px var(--primary); border-radius: 8px; }
+
 /* ---------- Badges ---------- */
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
 .badge.pass { background: var(--green-soft); color: var(--green); }
