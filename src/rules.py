@@ -301,7 +301,7 @@ def _r_specs(p: PageData, ad: Optional[AdContext]):
     if p.spec_tabs:
         return (
             "not_detected",
-            [ev("content", f"检测到规格选项卡（{'、'.join(p.spec_tabs[:2])}），但其内容为 JS 动态渲染，静态抓取无法读取；规格参数可能存在，需人工核对")],
+            [ev("content", f"检测到规格选项卡（{'、'.join(p.spec_tabs[:2])}），但其内容为 JS 动态渲染，静态抓取无法读取；部分建站平台还对数据脚本做浏览器校验（反爬），爬虫只能取到空数据。规格参数可能存在，需人工核对")],
             ["人工核对该选项卡中的参数；建议同时提供 HTML 文本版规格表（利于收录与转化）"],
             0.4,
         )
