@@ -217,7 +217,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dd-bar { max-width: 380px; margin: 0 auto; }
 .dd-desc { font-size: 12px; color: var(--text-soft); text-align: center; margin-top: 8px; }
 .dd-list { margin-top: 10px; display: flex; flex-direction: column; }
-.dd-item { display: flex; gap: 12px; padding: 10px 10px; border-top: 1px solid var(--border); cursor: pointer; border-radius: 6px; align-items: flex-start; }
+.dd-item { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 10px; border-top: 1px solid var(--border); cursor: pointer; border-radius: 6px; align-items: flex-start; }
 .dd-item:first-child { border-top: none; }
 .dd-item:hover { background: var(--surface-2); }
 .dd-ic { flex: none; display: flex; padding-top: 1px; }
@@ -227,6 +227,19 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dd-item.na .dd-ic, .dd-item.na .dd-t { color: var(--text-faint); }
 .dd-t { font-size: 13.5px; font-weight: 700; }
 .dd-d { font-size: 12px; color: var(--text-soft); margin-top: 2px; }
+/* 条目展开箭头 + 内联详情 */
+.dd-arrow { margin-left: auto; flex: none; color: var(--text-faint); font-size: 12px; transition: transform .2s; align-self: center; }
+.dd-item.open .dd-arrow { transform: rotate(180deg); }
+.dd-item.open { background: var(--surface-2); }
+.dd-x { display: none; flex-basis: 100%; margin-top: 8px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.dd-item.open .dd-x { display: block; }
+.dd-x-sec + .dd-x-sec { margin-top: 8px; }
+.dd-x-label { font-size: 11px; font-weight: 700; color: var(--text-faint); letter-spacing: .5px; margin-bottom: 4px; }
+.dd-ev { font-size: 12.5px; color: var(--text); padding: 5px 8px; background: var(--gray-soft); border-radius: 4px; }
+.dd-ev + .dd-ev { margin-top: 4px; }
+.dd-x-rec { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text); }
+.dd-x-rec li + li { margin-top: 3px; }
+.dd-x-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-size: 11.5px; color: var(--text-faint); }
 .dd-hint { font-size: 11.5px; color: var(--text-faint); text-align: center; margin-top: 8px; }
 .finding.dim-flash { box-shadow: 0 0 0 2px var(--primary); border-radius: 8px; }
 
