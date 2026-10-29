@@ -224,8 +224,8 @@ td .ico, th .ico { vertical-align: -2.5px; }
 #su-dim-detail { margin: 2px 0 16px; }
 #su-dim-detail:empty { display: none; margin: 0; }
 /* 全维度依次展示：块间用细分割线区隔 */
-.dd-block { padding: 16px 18px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
-.dd-block:last-child { margin-bottom: 0; }
+.dd-block { padding: 16px 0 18px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
+.dd-block:last-child { margin-bottom: 0; border-bottom: none; }
 .dd-head { display: flex; justify-content: center; align-items: baseline; gap: 14px; font-size: 22px; margin-bottom: 10px; }
 .dd-head .dd-name { font-weight: 500; color: var(--text); }
 .dd-head .dd-score { font-size: 14px; color: var(--text-faint); font-weight: 500; }
