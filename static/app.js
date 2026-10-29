@@ -179,15 +179,24 @@ function dimDetailHTML(dim, findings, dims) {
     const cls = f.status === "pass" ? "ok" : f.status === "fail" ? "bad" : f.status === "not_detected" ? "warn" : "na";
     const ic = f.status === "pass" ? icon("checkCircle", 18) : f.status === "fail" ? icon("alert", 18) : icon("helpCircle", 18);
     const desc = (f.evidence && f.evidence[0] && f.evidence[0].text) || (f.recommendation && f.recommendation[0]) || "";
-    return `<div class="dd-item ${cls}" data-i="${i}" role="button" title="点击查看完整证据">
+    const evAll = (f.evidence || []).map(e => `<div class="dd-ev">${esc(e.text)}</div>`).join("");
+    const recAll = (f.recommendation || []).map(r => `<li>${esc(r)}</li>`).join("");
+    const detail = `<div class="dd-x">
+        ${evAll ? `<div class="dd-x-sec"><div class="dd-x-label">检测结果</div>${evAll}</div>` : ""}
+        ${recAll ? `<div class="dd-x-sec"><div class="dd-x-label">整改建议</div><ul class="dd-x-rec">${recAll}</ul></div>` : ""}
+        <div class="dd-x-meta"><span>整改责任人：${esc(f.owner || "网建人员")}</span>${f.method ? `<span>检测方法：${esc(f.method)}</span>` : ""}</div>
+      </div>`;
+    return `<div class="dd-item ${cls}" data-i="${i}" role="button" title="点击展开详细信息">
       <span class="dd-ic">${ic}</span>
       <div class="dd-body"><div class="dd-t">${esc(f.title)}</div>${desc ? `<div class="dd-d">${esc(desc.length > 72 ? desc.slice(0, 72) + "…" : desc)}</div>` : ""}</div>
+      <span class="dd-arrow">▾</span>
+      ${detail}
     </div>`;
   }).join("");
   return head
     + (DIM_DESC[dim] ? `<div class="dd-desc">${esc(DIM_DESC[dim])}</div>` : "")
     + `<div class="dd-list">${rows}</div>
-       <div class="dd-hint">点击任一条目可展开并跳转到完整证据</div>`;
+       <div class="dd-hint">点击任一条目可向下展开详细证据与整改建议</div>`;
 }
 
 /* 报告渲染后依次展示全部 6 个维度的详情清单（webuup 式，无需点击切换） */
@@ -198,18 +207,11 @@ function renderAllDimDetails(result) {
   if (!dd) return;
   dd.innerHTML = Object.entries(dims).slice().sort((a, b) => (b[1].weight || 0) - (a[1].weight || 0)).map(([dim]) =>
     `<div class="dd-block" id="dd-${dim}">${dimDetailHTML(dim, findings, dims)}</div>`).join("");
-  // 条目点击 → 展开折叠区并跳到对应完整证据卡高亮
+  // 条目点击 → 原地展开/收起详细信息（手风琴，同维度内互斥）
   $$(".dd-item", dd).forEach(item => item.addEventListener("click", () => {
-    const dim = item.closest(".dd-block").id.slice(3);
-    const dimCards = $$("#su-findings .finding").filter(el => el.dataset.dim === dim);
-    const target = dimCards[+item.dataset.i];
-    if (target) {
-      const fold = $("#su-findings-fold");
-      if (fold) fold.open = true;
-      target.scrollIntoView({ behavior: "smooth", block: "center" });
-      target.classList.add("dim-flash");
-      setTimeout(() => target.classList.remove("dim-flash"), 2000);
-    }
+    const wasOpen = item.classList.contains("open");
+    $$(".dd-item.open", item.closest(".dd-list")).forEach(el => el.classList.remove("open"));
+    if (!wasOpen) item.classList.add("open");
   }));
   // 上方维度卡点击 → 平滑滚动到对应维度详情块
   $$(".dim-cell").forEach(cell => cell.addEventListener("click", () => {
