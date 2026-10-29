@@ -157,10 +157,10 @@ def _r_title_len(p: PageData, ad: Optional[AdContext]):
     if not p.title:
         return "not_applicable", [ev("title", "无标题，已由标题缺失规则处理")], ["先补充标题"], 0.6
     n = len(p.title)
-    if 10 <= n <= 70:
+    if 40 <= n <= 60:
         return "pass", [ev("title", f"标题长度 {n} 字符")], ["保持标题精炼"], 0.7
-    if n < 10:
-        return "fail", [ev("title", f"标题过短（{n} 字符）：{p.title}")], ["补充更具描述性的标题"], 0.7
+    if n < 40:
+        return "fail", [ev("title", f"标题过短（{n} 字符）：{p.title}")], ["补充核心产品/价值信息，标题控制在 40–60 字符"], 0.7
     return "fail", [ev("title", f"标题过长（{n} 字符），搜索结果可能被截断")], ["精简标题至 60 字符内并前置核心信息"], 0.7
 
 
@@ -585,7 +585,7 @@ RULES = [
          device="both", severity="high", method="比对输入与最终 URL 主机名", check=_r_unrelated_redirect),
     dict(id="TECH-001", title="存在 <title> 标题", basis="official_recommendation", dim="accessibility",
          device="both", severity="medium", method="解析 <title>", check=_r_title),
-    dict(id="TECH-002", title="标题长度合理（10–70 字符）", basis="technical_check", dim="accessibility",
+    dict(id="TECH-002", title="标题长度合理（40–60 字符）", basis="technical_check", dim="accessibility",
          device="both", severity="low", method="统计 title 长度", check=_r_title_len),
     dict(id="TECH-003", title="存在 meta description", basis="official_recommendation", dim="accessibility",
          device="both", severity="medium", method="解析 meta description", check=_r_meta_desc),
