@@ -55,6 +55,7 @@ const ICONS = {
   user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   check: '<polyline points="20 6 9 17 4 12"/>',
   checkCircle: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
+  helpCircle: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
   alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
   chevR: '<polyline points="9 18 15 12 9 6"/>',
 };
@@ -152,8 +153,47 @@ function dimBars(dimensions) {
   }).join("") + `</div>`;
 }
 
-/* 维度卡 → 问题清单联动：点击后仅显示该维度检测项并滚动定位；再点一次恢复全部 */
-function bindDimNav() {
+/* 维度定位详情（webuup 式）：维度名+得分+条目清单（通过绿勾 / 未达标红色 / 需人工核对橙问号） */
+const DIM_DESC = {
+  content: "充足的产品内容与规格信息是采购决策与质量评分的核心依据。",
+  trust: "信任要素让访客确认贵司真实可靠，直接影响询盘转化。",
+  conversion: "清晰的转化路径（表单/电话/WhatsApp）把广告流量变成询盘。",
+  accessibility: "可访问的页面确保所有用户与搜索引擎都能正常读取内容。",
+  ad_relevance: "广告承诺与页面内容一致，可提升质量得分并降低点击成本。",
+  mobile_perf: "移动端加载速度与体验决定广告流量的留存与转化。",
+};
+function dimDetailHTML(dim, findings, dims) {
+  const d = dims[dim];
+  const items = findings.filter(f => f.dimension === dim);
+  let head;
+  if (d && d.score != null) {
+    const color = d.score >= 80 ? "var(--green-chart)" : d.score >= 60 ? "var(--amber-chart)" : "var(--red-chart)";
+    const pts = Math.round(d.score * (d.weight || 0) / 100);
+    head = `<div class="dd-head"><span class="dd-name">${esc(d.label)}</span><span class="dd-score"><b style="color:${color}">${pts}</b>/${d.weight}</span></div>
+      <div class="bar dd-bar"><i style="width:${d.score}%;background:${color}"></i></div>`;
+  } else {
+    head = `<div class="dd-head"><span class="dd-name">${esc(d ? d.label : dim)}</span><span class="dd-score dim-warn">${d && d.note ? esc(d.note) : "未评估"}</span></div>
+      <div class="bar dd-bar"><i style="width:0%"></i></div>`;
+  }
+  const rows = items.map((f, i) => {
+    const cls = f.status === "pass" ? "ok" : f.status === "fail" ? "bad" : f.status === "not_detected" ? "warn" : "na";
+    const ic = f.status === "pass" ? icon("checkCircle", 18) : f.status === "fail" ? icon("alert", 18) : icon("helpCircle", 18);
+    const desc = (f.evidence && f.evidence[0] && f.evidence[0].text) || (f.recommendation && f.recommendation[0]) || "";
+    return `<div class="dd-item ${cls}" data-i="${i}" role="button" title="点击查看完整证据">
+      <span class="dd-ic">${ic}</span>
+      <div class="dd-body"><div class="dd-t">${esc(f.title)}</div>${desc ? `<div class="dd-d">${esc(desc.length > 72 ? desc.slice(0, 72) + "…" : desc)}</div>` : ""}</div>
+    </div>`;
+  }).join("");
+  return head
+    + (DIM_DESC[dim] ? `<div class="dd-desc">${esc(DIM_DESC[dim])}</div>` : "")
+    + `<div class="dd-list">${rows}</div>
+       <div class="dd-hint">点击任一条目可跳转到下方完整证据与整改建议 · 再点上方维度卡恢复全部</div>`;
+}
+
+/* 维度卡 → 问题清单联动：点击后仅显示该维度检测项并定位；再点一次恢复全部 */
+function bindDimNav(result) {
+  const dims = (result && result.score && result.score.dimensions) || {};
+  const findings = (result && result.findings) || [];
   $$(".dim-cell").forEach(cell => cell.addEventListener("click", () => {
     const dim = cell.dataset.dim;
     const already = cell.classList.contains("active");
@@ -163,17 +203,28 @@ function bindDimNav() {
     if (already) {  // 再点一次恢复全部
       if (allChip) allChip.classList.add("active");
       cards.forEach(el => el.style.display = el.classList.contains("s-not_applicable") ? "none" : "");
+      $("#su-dim-detail").innerHTML = "";
       return;
     }
     cell.classList.add("active");
     $$("#su-findings .chip").forEach(c => c.classList.remove("active"));
-    let first = null;
     cards.forEach(el => {
       const hit = el.dataset.dim === dim;
       el.style.display = hit ? "" : "none";
-      if (hit && !first) first = el;
     });
-    if (first) first.scrollIntoView({ behavior: "smooth", block: "start" });
+    const dd = $("#su-dim-detail");
+    dd.innerHTML = dimDetailHTML(dim, findings, dims);
+    // 条目点击 → 跳到对应完整证据卡并高亮
+    $$(".dd-item", dd).forEach(item => item.addEventListener("click", () => {
+      const dimCards = cards.filter(el => el.dataset.dim === dim);
+      const target = dimCards[+item.dataset.i];
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        target.classList.add("dim-flash");
+        setTimeout(() => target.classList.remove("dim-flash"), 2000);
+      }
+    }));
+    dd.scrollIntoView({ behavior: "smooth", block: "start" });
   }));
 }
 
@@ -268,6 +319,7 @@ function findingsBlock(findings, mountId, filterEl, pageUrl) {
   $(mountId).innerHTML = toolbar + list;
   $(mountId).querySelectorAll(".chip").forEach(chip => chip.addEventListener("click", () => {
     $$(".dim-cell").forEach(c => c.classList.remove("active"));  // 切换状态筛选时退出维度定位模式
+    const dd = $("#su-dim-detail"); if (dd) dd.innerHTML = "";
     $(mountId).querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
     chip.classList.add("active");
     const f = chip.dataset.f;
@@ -351,10 +403,11 @@ function renderSingle(r) {
 
   <div class="panel">
     <div class="section-title">${icon("search", 17)} 问题清单与证据</div>
+    <div id="su-dim-detail"></div>
     <div id="su-findings"></div>
   </div>`;
   findingsBlock(r.findings || [], "#su-findings", null, (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || "");
-  bindDimNav();
+  bindDimNav(r);
   box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
