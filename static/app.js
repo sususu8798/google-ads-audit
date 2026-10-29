@@ -195,8 +195,7 @@ function dimDetailHTML(dim, findings, dims) {
   }).join("");
   return head
     + (DIM_DESC[dim] ? `<div class="dd-desc">${esc(DIM_DESC[dim])}</div>` : "")
-    + `<div class="dd-list">${rows}</div>
-       <div class="dd-hint">点击任一条目可向下展开详细证据与整改建议</div>`;
+    + `<div class="dd-list">${rows}</div>`;
 }
 
 /* 报告渲染后依次展示全部 6 个维度的详情清单（webuup 式，无需点击切换） */
@@ -353,12 +352,7 @@ function renderSingle(r) {
         ? `<button class="btn copy-top" id="su-copy-top">${icon("clipboard", 16)} 复制整改项</button>` : ""}
     </div>
     <div id="su-dim-detail"></div>
-    <details class="fold fold-inline" id="su-findings-fold">
-      <summary class="subhead">完整证据与整改建议（点击展开）</summary>
-      <div id="su-findings"></div>
-    </details>
   </div>`;
-  findingsBlock(r.findings || [], "#su-findings", null, (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || "");
   renderAllDimDetails(r);
   // 面板右上角大按钮：复制整改项（未达标 + 需人工核对）
   const topCopy = $("#su-copy-top");
