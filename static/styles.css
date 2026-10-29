@@ -19,7 +19,7 @@
   /* 评分环/维度条专用色（黄取自用户截图定位图标采样 #F6D154，红为正红） */
   --green-chart: #abdc4d;
   --red-chart: #e60012;
-  --amber-chart: #f6d154;
+  --amber-chart: #f0d269;
   --blue: #1b3c6b;
   --blue-soft: #e9eef6;
   --gray: #6d787c;
@@ -239,7 +239,8 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dd-ic { flex: none; display: flex; padding-top: 1px; }
 .dd-item.ok .dd-ic { color: var(--green); }
 .dd-item.bad .dd-ic, .dd-item.bad .dd-t { color: var(--red); }
-.dd-item.warn .dd-ic, .dd-item.warn .dd-t { color: var(--amber); }
+.dd-item.warn .dd-ic { color: var(--amber-chart); }
+.dd-item.warn .dd-t { color: var(--amber); }
 .dd-item.na .dd-ic, .dd-item.na .dd-t { color: var(--text-faint); }
 .dd-t { font-size: 14px; font-weight: 700; }
 .dd-d { font-size: 12.5px; font-weight: 400; color: var(--text-soft); margin-top: 3px; line-height: 1.5; }
@@ -262,7 +263,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; white-space: nowrap; }
 .badge.pass { background: var(--green-soft); color: var(--green); }
 .badge.fail { background: var(--red-soft); color: var(--red); }
-.badge.not_detected { background: var(--blue-soft); color: var(--blue); }
+.badge.not_detected { background: var(--amber-soft); color: var(--amber); }
 .badge.not_applicable { background: var(--gray-soft); color: var(--gray); }
 .badge.critical { background: #fde2e2; color: #b42318; }
 .badge.high { background: var(--red-soft); color: var(--red); }
@@ -308,7 +309,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 }
 .finding.s-fail { border-left-color: var(--red); }
 .finding.s-pass { border-left-color: var(--green); }
-.finding.s-not_detected { border-left-color: var(--blue); }
+.finding.s-not_detected { border-left-color: var(--amber-chart); }
 .finding.s-not_applicable { border-left-color: var(--gray); }
 .finding .f-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .finding .f-title { font-weight: 700; font-size: 13.5px; flex: 1; min-width: 200px; }
