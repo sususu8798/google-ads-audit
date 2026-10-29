@@ -164,18 +164,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
 .btn.secondary { background: var(--surface); color: var(--primary); border: 1px solid var(--border); box-shadow: none; }
 .btn.ghost { background: var(--primary-soft); color: var(--primary-700); box-shadow: none; }
-.copy-top {
-  padding: 11px 26px; font-size: 14px; flex: none;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #2a5ea8 0%, var(--primary) 55%, #16345e 100%);
-  box-shadow: 0 4px 14px rgba(27,60,107,.32), inset 0 1px 0 rgba(255,255,255,.18);
-}
-.copy-top:hover {
-  background: linear-gradient(135deg, #3468b2 0%, var(--primary-700) 55%, #122a4e 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 7px 18px rgba(27,60,107,.4), inset 0 1px 0 rgba(255,255,255,.18);
-}
-.copy-top:active { transform: translateY(0); box-shadow: 0 3px 8px rgba(27,60,107,.3); }
+.copy-top { padding: 11px 26px; font-size: 14px; flex: none; }
 .actions { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
 
 /* ---------- Dropzone ---------- */
