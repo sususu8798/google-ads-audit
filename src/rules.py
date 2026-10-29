@@ -304,8 +304,9 @@ def _r_value_prop(p: PageData, ad: Optional[AdContext]):
     if p.word_count < 50:
         return "fail", [ev("content", f"正文真实内容过少（约 {p.word_count} 词/字），无法构成清晰的价值主张")], ["补充产品说明、报价/询价/定制等实质内容与行动召唤"], 0.6
     # 信号分级：强信号=实质动作/报价/定制/样品等（模板标配之外的价值点）；弱信号=仅价格标签或联系入口
-    signals = ["询价", "报价", "免费", "联系", "定制", "批发", "factory", "price", "quote", "contact", "oem", "moq", "sample"]
-    strong = {"询价", "报价", "免费", "定制", "批发", "quote", "oem", "moq", "sample"}
+    # inquir/enquir 用词干匹配 inquiry/inquire/inquiry-form 与 enquiry/enquire 等变体（B2B 英文站询价入口标准文案）
+    signals = ["询价", "报价", "免费", "联系", "定制", "批发", "factory", "price", "quote", "quotation", "inquir", "enquir", "contact", "oem", "moq", "sample"]
+    strong = {"询价", "报价", "免费", "定制", "批发", "quote", "quotation", "inquir", "enquir", "oem", "moq", "sample"}
     hits = [s for s in signals if s in text]
     strong_hits = [s for s in hits if s in strong]
     # 明确规则：价值主张清晰需 ①正文主内容出现 ≥2 个信号 ②其中至少 1 个为强信号（不能是“价格+联系”这种模板标配）
