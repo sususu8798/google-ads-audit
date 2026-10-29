@@ -97,7 +97,7 @@ def test_r_exaggeration_quotes_matched_phrases():
     pd = PageData(url="u", final_url="u", status_code=200,
                   extreme_claims=["全球领先", "100%", "保证"])
     status, ev, sug, _ = _r_exaggeration(pd, None)
-    assert status == "fail"
+    assert status == "not_detected"  # 命中≠违规，交人工核对而非未达标
     joined = "".join(e["text"] for e in ev)
     assert "全球领先" in joined and "100%" in joined
     assert "人工" in "".join(sug)
@@ -110,7 +110,7 @@ def test_r_exaggeration_lists_sentence_context():
     pd = PageData(url="u", final_url="u", status_code=200,
                   extreme_claims=["100%｜所在句子：Labeling accuracy up to 100% for carton boxes"])
     status, ev, sug, _ = _r_exaggeration(pd, None)
-    assert status == "fail"
+    assert status == "not_detected"  # 命中≠违规，交人工核对而非未达标
     joined = "".join(e["text"] for e in ev)
     assert "所在句子" in joined
     assert "Labeling accuracy up to 100%" in joined
