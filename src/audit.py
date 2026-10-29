@@ -49,6 +49,8 @@ def _page_summary(p) -> dict:
         "images_total": p.images_total,
         "images_missing_alt": p.images_missing_alt,
         "images_with_alt": p.images_with_alt,
+        "images_decorative": p.images_decorative,
+        "images_empty_src": p.images_empty_src,
         "forms": p.forms,
         "form_has_submit": p.form_has_submit,
         "form_inputs": p.form_inputs,
