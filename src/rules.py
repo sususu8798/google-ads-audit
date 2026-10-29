@@ -218,7 +218,15 @@ def _r_alt(p: PageData, ad: Optional[AdContext]):
     note = "；内容图样本过小，建议人工核对" if total < 3 else ""
     conf = 0.4 if total < 3 else 0.8
     if coverage >= 0.9:
-        return "pass", [ev("images", f"内容图片 ALT 覆盖率 {coverage*100:.0f}%（{p.images_with_alt}/{total}）{note}")], ["保持图片 ALT 描述准确"], conf
+        evs = [ev("images", f"内容图片 ALT 覆盖率 {coverage*100:.0f}%（{p.images_with_alt}/{total}）{note}")]
+        # 达标也列出缺失明细，便于定位个别遗漏的图片
+        if p.images_missing_alt_list:
+            if p.images_missing_alt != len(p.images_missing_alt_list):
+                suffix = f"（共 {p.images_missing_alt} 张，此处列出 {len(p.images_missing_alt_list)} 张）"
+            else:
+                suffix = ""
+            evs.append(ev("images", f"仍缺失 ALT 的图片地址{suffix}：" + "；".join(p.images_missing_alt_list)))
+        return "pass", evs, ["保持图片 ALT 描述准确"], conf
     evs = [ev("images", f"内容图片 ALT 缺失 {p.images_missing_alt}/{total}（覆盖率 {coverage*100:.0f}%）{note}")]
     if p.images_missing_alt_list:
         if p.images_missing_alt != len(p.images_missing_alt_list):
