@@ -375,6 +375,19 @@ def _cls_id(el) -> str:
         return ""
 
 
+# 联系动作链接：mailto / tel / WhatsApp（含 api.whatsapp.com 跳转与 wa.me 短链）。
+# 这些是「联系销售」动作入口而非页面导航，统计链接密度时应剔除。
+CONTACT_LINK_RE = re.compile(r"^(?:mailto:|tel:|whatsapp://)|(?:^|//|@)(?:wa\.me/|api\.whatsapp\.com|chat\.whatsapp\.com)", re.I)
+
+
+def _is_contact_link(a) -> bool:
+    try:
+        href = a.get("href") or ""
+        return bool(CONTACT_LINK_RE.search(href))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _content_text(soup) -> str:
     """主内容文本：剔除 SVG 图标、表单、导航/页眉/页脚类模板块与高链接密度区块。
 
@@ -399,7 +412,15 @@ def _content_text(soup) -> str:
         try:
             if t.decomposed:
                 continue
-            links = t.find_all("a")
+            # 只统计「真实页面链接」：排除联系动作链接（mailto:/tel:/WhatsApp）与
+            # 非导航占位链接（空 href / javascript: / #）——建站工具常把大段联系文本
+            # 包在 javascript:; 假链接里，不排除会把「Online Inquiry」询价区块整块误删
+            links = []
+            for a in t.find_all("a"):
+                href = (a.get("href") or "").strip()
+                if not href or href.startswith(("javascript:", "#")) or _is_contact_link(a):
+                    continue
+                links.append(a)
             if len(links) >= 5:
                 total = _count_words(t.get_text(" ", strip=True))
                 in_links = _count_words(" ".join(a.get_text(" ", strip=True) for a in links))
