@@ -517,10 +517,13 @@ def _r_exaggeration(p: PageData, ad: Optional[AdContext]):
     if p.error:
         return "not_detected", [ev("trust", "未获取页面")], ["抓取后筛查宣传用语"], 0.4
     if p.extreme_claims:
-        joined = "、".join(p.extreme_claims[:6])
+        evids = [ev("trust", f"检测到 {len(p.extreme_claims)} 处极端/无法验证承诺用语，逐条如下（附所在原文句子）：")]
+        evids += [ev("trust", c) for c in p.extreme_claims[:6]]
+        if len(p.extreme_claims) > 6:
+            evids.append(ev("trust", f"…另有 {len(p.extreme_claims) - 6} 处未列出"))
         return (
             "fail",
-            [ev("trust", f"检测到 {len(p.extreme_claims)} 处极端/无法验证承诺用语：{joined}")],
+            evids,
             ["逐条人工确认这些表述是否有证据支撑；广告法禁用「最」「第一」「100%」等绝对化用语，"
              "无法验证的承诺建议改为可核实的具体参数或第三方证明"],
             0.6,
