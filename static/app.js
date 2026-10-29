@@ -133,18 +133,48 @@ function scoreRing(overall, complete) {
     </div>
   </div>`;
 }
+/* 六维横向卡片（webuup 排版）：名称 + 得分/满分 + 胶囊条，可点击定位到问题清单对应维度 */
 function dimBars(dimensions) {
-  const sorted = Object.values(dimensions).slice().sort((a, b) => (b.weight || 0) - (a.weight || 0));
-  return `<div class="dim-list">` + sorted.map(d => {
+  const sorted = Object.entries(dimensions).sort((a, b) => (b[1].weight || 0) - (a[1].weight || 0));
+  return `<div class="dim-grid">` + sorted.map(([key, d]) => {
     if (d.score == null) {
-      return `<div class="dim-row"><div class="dim-head"><span class="name">${esc(d.label)}</span><span class="num dim-warn">${esc(d.note || "未评估")}</span></div>
-        <div class="bar"><i style="width:0%"></i></div><div class="dim-note dim-warn">权重 ${d.weight}% · 暂无可评估项</div></div>`;
+      return `<div class="dim-cell" data-dim="${esc(key)}" role="button" title="点击查看该维度检测项">
+        <div class="dim-top"><span class="name">${esc(d.label)}</span><span class="num dim-warn">${esc(d.note || "未评估")}</span></div>
+        <div class="bar"><i style="width:0%"></i></div>
+        <div class="dim-note dim-warn">暂无可评估项</div></div>`;
     }
     const color = d.score >= 80 ? "var(--green-chart)" : d.score >= 60 ? "var(--amber-chart)" : "var(--red-chart)";
-    return `<div class="dim-row"><div class="dim-head"><span class="name">${esc(d.label)}</span></div>
+    const pts = Math.round(d.score * (d.weight || 0) / 100);
+    return `<div class="dim-cell" data-dim="${esc(key)}" role="button" title="点击查看该维度检测项">
+      <div class="dim-top"><span class="name">${esc(d.label)}</span><span class="num"><b style="color:${color}">${pts}</b>/${d.weight}</span></div>
       <div class="bar"><i style="width:${d.score}%;background:${color}"></i></div>
-      <div class="dim-note">权重 ${d.weight}% · 通过 ${d.passed} / 评估 ${d.applicable} · 需人工核对 ${d.not_detected}</div></div>`;
+      <div class="dim-note">通过 ${d.passed}/${d.applicable}${d.not_detected ? ` · 需人工核对 ${d.not_detected}` : ""}</div></div>`;
   }).join("") + `</div>`;
+}
+
+/* 维度卡 → 问题清单联动：点击后仅显示该维度检测项并滚动定位；再点一次恢复全部 */
+function bindDimNav() {
+  $$(".dim-cell").forEach(cell => cell.addEventListener("click", () => {
+    const dim = cell.dataset.dim;
+    const already = cell.classList.contains("active");
+    $$(".dim-cell").forEach(c => c.classList.remove("active"));
+    const cards = $$("#su-findings .finding");
+    const allChip = $("#su-findings .chip[data-f=all]");
+    if (already) {  // 再点一次恢复全部
+      if (allChip) allChip.classList.add("active");
+      cards.forEach(el => el.style.display = el.classList.contains("s-not_applicable") ? "none" : "");
+      return;
+    }
+    cell.classList.add("active");
+    $$("#su-findings .chip").forEach(c => c.classList.remove("active"));
+    let first = null;
+    cards.forEach(el => {
+      const hit = el.dataset.dim === dim;
+      el.style.display = hit ? "" : "none";
+      if (hit && !first) first = el;
+    });
+    if (first) first.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
 }
 
 function findingCard(f) {
@@ -156,7 +186,7 @@ function findingCard(f) {
     return `<div class="f-ev">${showLoc ? `<div class="loc">${esc(loc)}</div>` : ""}<div>${esc(e.text)}</div></div>`;
   }).join("");
   const rec = (f.recommendation || []).map(r => `<li>${esc(r)}</li>`).join("");
-  return `<div class="finding s-${f.status}">
+  return `<div class="finding s-${f.status}" data-dim="${esc(f.dimension || "")}">
     <div class="f-top">
       <span class="f-title">${esc(f.title)}</span>
       ${severityBadge(f.severity)} ${statusBadge(f.status)}${ownerBadge(f.owner)}
@@ -237,6 +267,7 @@ function findingsBlock(findings, mountId, filterEl, pageUrl) {
   const list = `<div class="flist">${findings.map(findingCard).join("") || '<div class="empty">无规则结果</div>'}</div>`;
   $(mountId).innerHTML = toolbar + list;
   $(mountId).querySelectorAll(".chip").forEach(chip => chip.addEventListener("click", () => {
+    $$(".dim-cell").forEach(c => c.classList.remove("active"));  // 切换状态筛选时退出维度定位模式
     $(mountId).querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
     chip.classList.add("active");
     const f = chip.dataset.f;
@@ -323,6 +354,7 @@ function renderSingle(r) {
     <div id="su-findings"></div>
   </div>`;
   findingsBlock(r.findings || [], "#su-findings", null, (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || "");
+  bindDimNav();
   box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
