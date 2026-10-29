@@ -391,3 +391,34 @@ def test_missing_alt_lists_all_image_urls():
         assert f"https://x.com/img/{c}.jpg" in joined  # 10 张全部列出
     assert "仅列前" not in joined  # 不带截断说明
     assert "此处列出" not in joined  # 未触存储上限，也不带上限说明
+
+
+def test_js_spec_tab_marked_not_detected():
+    """选项卡头在静态 HTML、内容由 JS 注入：应记入 spec_tabs 供规则标记人工核对。"""
+    from src.html_extract import extract, PageData
+    from src.rules import _r_specs
+    html = (
+        '<div class="tab"><div class="tab_header">'
+        '<div class="tab_header_btn active" title="Key Features">Key Features</div>'
+        '<div class="tab_header_btn" title="Technical Specifications">Technical Specifications</div>'
+        '</div><div class="tab_body"></div></div>'  # 内容 JS 注入，静态为空
+    )
+    pd = extract("u", "u", 200, html.encode())
+    assert pd.specs == [] and pd.certs == []
+    assert pd.spec_tabs == ["Technical Specifications"]
+    status, ev, sug, _ = _r_specs(pd, None)
+    assert status == "not_detected"
+    assert "JS" in ev[0]["text"] or "动态" in ev[0]["text"]
+    assert "人工" in "".join(sug)
+
+
+def test_static_spec_table_still_passes():
+    """规格表就在静态 HTML 里时应照常 pass，不受 spec_tabs 影响。"""
+    from src.html_extract import extract
+    html = (
+        '<table><tr><th>Item</th><th>Parameter</th></tr>'
+        '<tr><td>Packing Speed</td><td>30-80 packs/min</td></tr></table>'
+    )
+    pd = extract("u", "u", 200, html.encode())
+    assert pd.specs, "静态规格表应提取到参数"
+    assert pd.spec_tabs == []
