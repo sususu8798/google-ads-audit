@@ -293,6 +293,37 @@ def _extract_specs(soup: BeautifulSoup, text: str):
     return found[:15], image_tables
 
 
+def _detect_spec_tabs(soup) -> List[str]:
+    """检测「选项卡」形式的规格区块（如 Technical Specifications / 规格参数）。
+
+    建站工具的选项卡头在静态 HTML 里，而选项卡内容（规格表）由 JS 异步注入，
+    静态抓取读不到正文。此时规格「可能存在」但不能确认，需人工核对，
+    不能直接判「缺失」。只认 class/id 含 tab（排除 table）的元素，且标题
+    命中规格关键词、文本较短（避免把整个 tab 容器的大段拼接文本算进来）。
+    """
+    titles: List[str] = []
+    seen = set()
+    for el in soup.find_all(True):
+        if el.name in ("script", "style"):
+            continue
+        toks = _cls_id(el).lower().replace("-", " ").replace("_", " ").split()
+        if not any(t.startswith("tab") and not t.startswith("table") for t in toks):
+            continue
+        raw = (el.get("title") or el.get_text(" ", strip=True) or "").strip()
+        if not raw or len(raw) > 60:  # 超长说明是整个 tab 容器的拼接文本，跳过
+            continue
+        title = raw[:40]
+        if title in seen:
+            continue
+        if SPEC_TABLE_HEADER_RE.search(title):
+            seen.add(title)
+            titles.append(title)
+            if len(titles) >= 3:
+                break
+    # 去掉父容器拼接文本（如 "Key Features Technical Specifications"）：保留更精确的子项
+    return [t for t in titles if not any(t != o and o in t for o in titles)]
+
+
 @dataclass
 class PageData:
     url: str
@@ -334,6 +365,8 @@ class PageData:
     specs: List[str] = field(default_factory=list)
     # 整张表只有图片、没有文本的表格数（规格表被做成图片时文本层读不到，需人工核对）
     image_tables: int = 0
+    # JS 动态渲染的规格选项卡标题（选项卡头在静态 HTML，内容由 JS 异步注入，静态抓取读不到，需人工核对）
+    spec_tabs: List[str] = field(default_factory=list)
     # HTTP 响应头 X-Robots-Tag（noindex 也可通过响应头设置，meta 里查不到）
     x_robots_tag: str = ""
     # robots.txt 是否禁止抓取该路径：None=未检查/无法判断，True=禁止，False=允许
@@ -596,6 +629,9 @@ def extract(page_url: str, final_url: str, status_code, content: bytes, error=No
     pd.emails = list({m.group(0).lower() for m in EMAIL_RE.finditer(text)})[:10]
     pd.certs = list({m.group(0).upper() for m in CERT_RE.finditer(text)})[:10]
     pd.specs, pd.image_tables = _extract_specs(soup, text)
+    # 规格选项卡（JS 渲染）只在文本层没抓到规格时才需要标记
+    if not pd.specs and not pd.certs:
+        pd.spec_tabs = _detect_spec_tabs(soup)
 
     # X-Robots-Tag 响应头（noindex 的第二种设置方式，meta 里看不到）
     if headers:
