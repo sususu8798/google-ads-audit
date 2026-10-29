@@ -251,7 +251,10 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .finding .f-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .finding .f-title { font-weight: 700; font-size: 13.5px; flex: 1; min-width: 200px; }
 .finding .f-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
-.finding .f-ev { background: var(--surface-2); border-radius: 8px; padding: 9px 11px; margin-top: 6px; font-size: 12.5px; }
+/* 证据块：背景放在 wrap 上整体连成一块，内部各条只用分隔线，不再各自成小色块 */
+.finding .f-ev-wrap { background: var(--surface-2); border-radius: 8px; margin-top: 6px; overflow: hidden; }
+.finding .f-ev { padding: 9px 11px; font-size: 12.5px; }
+.finding .f-ev + .f-ev { border-top: 1px solid var(--border); }
 /* 被检查对象的位置（URL 等）：独立成行的弱化提示，不再是来源标签的后缀 */
 .finding .f-ev .loc { color: var(--text-faint); font-size: 11px; margin-bottom: 3px; word-break: break-all; }
 .finding ul { margin: 8px 0 0; padding-left: 18px; }
