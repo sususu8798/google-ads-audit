@@ -335,12 +335,6 @@ function renderSingle(r) {
   <div class="panel">
     <div class="section-title">${icon("clipboard", 17)} 检测报告</div>
     <div class="section-sub">输入 URL：${esc(r.input && r.input.url || r.url)}</div>
-    <div class="stat-grid">
-      <div class="stat"><div class="k">抓取状态</div><div class="v">${f.ok ? icon("checkCircle", 14) + " 成功" : icon("alert", 14) + " " + esc(f.error || ("HTTP " + (f.status_code ?? "失败")))}</div></div>
-      <div class="stat"><div class="k">HTTP 状态</div><div class="v">${f.status_code ?? "—"}</div></div>
-      <div class="stat"><div class="k">最终 URL</div><div class="v" style="font-size:12px;word-break:break-all">${esc(f.final_url || r.url)}</div></div>
-      <div class="stat"><div class="k">耗时</div><div class="v">${(f.elapsed_ms || 0)}<small> ms</small></div></div>
-    </div>
     ${f.error ? `<div class="notice error">抓取错误：${esc(f.error)}</div>` : ""}
     ${f.redirect_chain && f.redirect_chain.length > 1 ? `<div class="notice info">跳转链：${f.redirect_chain.map(esc).join(" → ")}</div>` : ""}
     <div class="divider"></div>
