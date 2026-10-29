@@ -84,6 +84,11 @@ a { color: var(--primary); text-decoration: none; }
 .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
 .panel + .panel { margin-top: 18px; }
 .section-title { font-size: 15px; font-weight: 700; margin: 0 0 4px; display: flex; align-items: center; gap: 8px; }
+/* 面板头部：标题 + 右侧大按钮 */
+.panel-head { display: flex; align-items: center; gap: 12px; }
+.panel-head .section-title { flex: 1; margin-bottom: 0; }
+.panel-head + #su-dim-detail { margin-top: 12px; }
+.copy-top { padding: 10px 24px; font-size: 14px; border-radius: 8px; flex: none; }
 .section-sub { color: var(--text-soft); font-size: 12.5px; margin: 0 0 18px; }
 
 /* ---------- Form ---------- */
