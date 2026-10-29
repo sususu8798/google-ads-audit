@@ -187,46 +187,34 @@ function dimDetailHTML(dim, findings, dims) {
   return head
     + (DIM_DESC[dim] ? `<div class="dd-desc">${esc(DIM_DESC[dim])}</div>` : "")
     + `<div class="dd-list">${rows}</div>
-       <div class="dd-hint">点击任一条目可展开并跳转到完整证据 · 再点上方维度卡恢复全部</div>`;
+       <div class="dd-hint">点击任一条目可展开并跳转到完整证据</div>`;
 }
 
-/* 维度卡 → 问题清单联动：点击后仅显示该维度检测项并定位；再点一次恢复全部 */
-function bindDimNav(result) {
+/* 报告渲染后依次展示全部 6 个维度的详情清单（webuup 式，无需点击切换） */
+function renderAllDimDetails(result) {
   const dims = (result && result.score && result.score.dimensions) || {};
   const findings = (result && result.findings) || [];
-  $$(".dim-cell").forEach(cell => cell.addEventListener("click", () => {
-    const dim = cell.dataset.dim;
-    const already = cell.classList.contains("active");
-    $$(".dim-cell").forEach(c => c.classList.remove("active"));
-    const cards = $$("#su-findings .finding");
-    const allChip = $("#su-findings .chip[data-f=all]");
-    if (already) {  // 再点一次恢复全部
-      if (allChip) allChip.classList.add("active");
-      cards.forEach(el => el.style.display = el.classList.contains("s-not_applicable") ? "none" : "");
-      $("#su-dim-detail").innerHTML = "";
-      return;
+  const dd = $("#su-dim-detail");
+  if (!dd) return;
+  dd.innerHTML = Object.entries(dims).slice().sort((a, b) => (b[1].weight || 0) - (a[1].weight || 0)).map(([dim]) =>
+    `<div class="dd-block" id="dd-${dim}">${dimDetailHTML(dim, findings, dims)}</div>`).join("");
+  // 条目点击 → 展开折叠区并跳到对应完整证据卡高亮
+  $$(".dd-item", dd).forEach(item => item.addEventListener("click", () => {
+    const dim = item.closest(".dd-block").id.slice(3);
+    const dimCards = $$("#su-findings .finding").filter(el => el.dataset.dim === dim);
+    const target = dimCards[+item.dataset.i];
+    if (target) {
+      const fold = $("#su-findings-fold");
+      if (fold) fold.open = true;
+      target.scrollIntoView({ behavior: "smooth", block: "center" });
+      target.classList.add("dim-flash");
+      setTimeout(() => target.classList.remove("dim-flash"), 2000);
     }
-    cell.classList.add("active");
-    $$("#su-findings .chip").forEach(c => c.classList.remove("active"));
-    cards.forEach(el => {
-      const hit = el.dataset.dim === dim;
-      el.style.display = hit ? "" : "none";
-    });
-    const dd = $("#su-dim-detail");
-    dd.innerHTML = dimDetailHTML(dim, findings, dims);
-    // 条目点击 → 展开折叠区并跳到对应完整证据卡高亮
-    $$(".dd-item", dd).forEach(item => item.addEventListener("click", () => {
-      const dimCards = cards.filter(el => el.dataset.dim === dim);
-      const target = dimCards[+item.dataset.i];
-      if (target) {
-        const fold = $("#su-findings-fold");
-        if (fold) fold.open = true;
-        target.scrollIntoView({ behavior: "smooth", block: "center" });
-        target.classList.add("dim-flash");
-        setTimeout(() => target.classList.remove("dim-flash"), 2000);
-      }
-    }));
-    dd.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
+  // 上方维度卡点击 → 平滑滚动到对应维度详情块
+  $$(".dim-cell").forEach(cell => cell.addEventListener("click", () => {
+    const block = document.getElementById("dd-" + cell.dataset.dim);
+    if (block) block.scrollIntoView({ behavior: "smooth", block: "start" });
   }));
 }
 
@@ -320,8 +308,6 @@ function findingsBlock(findings, mountId, filterEl, pageUrl) {
   const list = `<div class="flist">${findings.map(findingCard).join("") || '<div class="empty">无规则结果</div>'}</div>`;
   $(mountId).innerHTML = toolbar + list;
   $(mountId).querySelectorAll(".chip").forEach(chip => chip.addEventListener("click", () => {
-    $$(".dim-cell").forEach(c => c.classList.remove("active"));  // 切换状态筛选时退出维度定位模式
-    const dd = $("#su-dim-detail"); if (dd) dd.innerHTML = "";
     $(mountId).querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
     chip.classList.add("active");
     const f = chip.dataset.f;
@@ -373,7 +359,7 @@ function renderSingle(r) {
     </details>
   </div>`;
   findingsBlock(r.findings || [], "#su-findings", null, (r.fetch && r.fetch.final_url) || (r.input && r.input.url) || r.url || "");
-  bindDimNav(r);
+  renderAllDimDetails(r);
   box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
