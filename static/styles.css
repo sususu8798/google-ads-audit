@@ -237,12 +237,12 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dd-arrow { margin-left: auto; flex: none; color: var(--text-faint); font-size: 12px; transition: transform .2s; align-self: center; }
 .dd-item.open .dd-arrow { transform: rotate(180deg); }
 .dd-item.open { background: var(--surface-2); }
-.dd-x { display: none; flex-basis: 100%; margin-top: 8px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; }
+.dd-x { display: none; flex-basis: 100%; margin-top: 6px; padding: 8px 10px; background: transparent; border: 1px solid var(--border); border-radius: 6px; }
 .dd-item.open .dd-x { display: block; }
 .dd-x-sec + .dd-x-sec { margin-top: 8px; }
 .dd-x-label { font-size: 11px; font-weight: 700; color: var(--text-faint); letter-spacing: .5px; margin-bottom: 4px; }
-.dd-ev { font-size: 12.5px; color: var(--text); padding: 5px 8px; background: var(--gray-soft); border-radius: 4px; }
-.dd-ev + .dd-ev { margin-top: 4px; }
+.dd-ev { font-size: 12px; color: var(--text); padding: 1px 0; background: transparent; border-radius: 0; }
+.dd-ev + .dd-ev { margin-top: 2px; }
 .dd-x-rec { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--text); }
 .dd-x-rec li + li { margin-top: 3px; }
 .dd-x-meta { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; font-size: 11.5px; color: var(--text-faint); }
