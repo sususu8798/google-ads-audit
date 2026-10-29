@@ -259,3 +259,18 @@ def test_page_size_healthy_band_passes():
     assert a.status == "pass"
     assert "健康区间" in a.evidence[0]["text"]
 
+
+
+def test_title_len_40_60():
+    """TECH-002 标题长度区间改为 40–60（2026-10-29 用户要求）。"""
+    from src.html_extract import PageData
+    from src.rules import _r_title_len
+    def mk(t):
+        return PageData(url="u", final_url="u", status_code=200, title=t)
+    assert _r_title_len(mk("x" * 14), None)[0] == "fail"      # 过短
+    assert _r_title_len(mk("x" * 30), None)[0] == "fail"      # 旧规则下是 pass，新规则过短
+    assert _r_title_len(mk("x" * 50), None)[0] == "pass"      # 区间内
+    assert _r_title_len(mk("x" * 74), None)[0] == "fail"      # 过长
+    assert _r_title_len(mk("x" * 61), None)[0] == "fail"      # 边界
+    assert _r_title_len(mk("x" * 40), None)[0] == "pass"      # 边界
+    assert _r_title_len(mk("x" * 60), None)[0] == "pass"      # 边界
