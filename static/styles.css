@@ -1,27 +1,27 @@
 :root {
-  /* 2026-10-29 换肤为 webuup 风格：色值采样自 webuup.com common.css 与用户参考截图 */
-  --bg: #f4f6f8;
+  /* 2026-10-29 二次调色：工业深蓝主色 + 采样黄 #F6D154 + 正红 #E60012 */
+  --bg: #f4f5f7;
   --surface: #ffffff;
-  --surface-2: #f7f9fa;
-  --border: #e6e8ea;
-  --text: #333333;
-  --text-soft: #666666;
-  --text-faint: #999ea3;
-  --primary: #3291c8;
-  --primary-soft: #e8f4fb;
-  --primary-700: #1e6ea0;
+  --surface-2: #f7f8fa;
+  --border: #e4e7eb;
+  --text: #2b3440;
+  --text-soft: #5f6b7a;
+  --text-faint: #98a1ab;
+  --primary: #1b3c6b;
+  --primary-soft: #e9eef6;
+  --primary-700: #142c50;
   --green: #3c963c;
   --green-soft: #edf7ed;
-  --red: #e65a5a;
-  --red-soft: #fdeeee;
-  --amber: #cc7c2e;
-  --amber-soft: #fdf5ec;
-  /* 评分环/维度条专用色（绿条取自参考截图采样 #79C77A） */
+  --red: #e60012;
+  --red-soft: #feecec;
+  --amber: #c99a1f;
+  --amber-soft: #fdf8e9;
+  /* 评分环/维度条专用色（黄取自用户截图定位图标采样 #F6D154，红为正红） */
   --green-chart: #79c77a;
-  --red-chart: #e65a5a;
-  --amber-chart: #d2780a;
-  --blue: #3291c8;
-  --blue-soft: #e8f4fb;
+  --red-chart: #e60012;
+  --amber-chart: #f6d154;
+  --blue: #1b3c6b;
+  --blue-soft: #e9eef6;
   --gray: #6d787c;
   --gray-soft: #f2f4f5;
   --shadow: 0 1px 3px rgba(13,13,39,.07);
@@ -154,7 +154,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   background: var(--primary); color: #fff; border: none; border-radius: 8px;
   padding: 12px 22px; font-size: 14px; font-weight: 700; cursor: pointer; transition: .15s;
-  box-shadow: 0 4px 12px rgba(50,145,200,.28);
+  box-shadow: 0 4px 12px rgba(27,60,107,.28);
 }
 .btn:hover { background: var(--primary-700); }
 .btn:disabled { opacity: .6; cursor: not-allowed; }
