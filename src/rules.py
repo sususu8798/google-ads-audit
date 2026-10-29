@@ -164,14 +164,26 @@ def _r_title_len(p: PageData, ad: Optional[AdContext]):
     return "fail", [ev("title", f"标题过长（{n} 字符），搜索结果可能被截断")], ["精简标题至 60 字符内并前置核心信息"], 0.7
 
 
+def _meta_desc_standard(text: str):
+    """按语言返回 (下限, 上限, 标准说明)：中文 60–100 字符，英文 120–160 字符。"""
+    cjk = sum(1 for ch in text if "\u4e00" <= ch <= "\u9fff")
+    if len(text) and cjk * 10 >= len(text) * 3:  # 中文字符占比 ≥30% 按中文标准
+        return 60, 100, "中文 60–100 字符"
+    return 120, 160, "英文 120–160 字符"
+
+
 def _r_meta_desc(p: PageData, ad: Optional[AdContext]):
     if p.error:
         return "not_detected", [ev("meta", "未获取页面")], ["抓取后检查 meta description"], 0.4
-    if p.meta_description and len(p.meta_description) >= 20:
-        return "pass", [ev("meta", p.meta_description[:120])], ["保持描述与广告承诺、页面内容一致"], 0.85
-    if p.meta_description:
-        return "fail", [ev("meta", f"描述过短（{len(p.meta_description)} 字符）")], ["补充 70–160 字、包含价值主张与关键词的描述"], 0.8
-    return "fail", [ev("meta", "缺少 meta description")], ["补充 meta description，提升搜索结果点击率与相关性信号"], 0.85
+    if not p.meta_description:
+        return "fail", [ev("meta", "缺少 meta description")], ["补充 meta description，提升搜索结果点击率与相关性信号"], 0.85
+    n = len(p.meta_description)
+    lo, hi, std = _meta_desc_standard(p.meta_description)
+    if lo <= n <= hi:
+        return "pass", [ev("meta", f"长度 {n} 字符（{std}）：{p.meta_description[:120]}")], ["保持描述与广告承诺、页面内容一致"], 0.85
+    if n < lo:
+        return "fail", [ev("meta", f"描述过短（{n} 字符，标准 {std}）")], [f"补充至 {lo}–{hi} 字符，包含价值主张与关键词"], 0.8
+    return "fail", [ev("meta", f"描述过长（{n} 字符，标准 {std}），搜索结果可能被截断")], [f"精简至 {lo}–{hi} 字符并前置核心信息"], 0.8
 
 
 def _r_canonical(p: PageData, ad: Optional[AdContext]):
