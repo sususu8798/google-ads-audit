@@ -84,6 +84,28 @@ EXTREME_CLAIM_RE = re.compile(
 )
 
 
+# 句子边界（不含半角句点：缩写/编号如 "No. 1"、"e.g." 会误切）
+_SENT_SPLIT_RE = re.compile(r"[。！？!?；;\n]")
+
+
+def _sentence_around(text: str, hit: int, frag_len: int) -> str:
+    """取命中词所在句子：先取 ±70 字符窗口，再向两侧扩到句子边界，超长截断。"""
+    start = max(0, hit - 70)
+    end = min(len(text), hit + frag_len + 70)
+    m = None
+    for m in _SENT_SPLIT_RE.finditer(text, start, hit):
+        pass
+    if m:
+        start = m.end()
+    m2 = _SENT_SPLIT_RE.search(text, hit + frag_len, end)
+    if m2:
+        end = m2.start()
+    sent = re.sub(r"\s+", " ", text[start:end]).strip()
+    if len(sent) > 160:
+        sent = sent[:157] + "…"
+    return sent
+
+
 def _clean_phone(candidate: str) -> Optional[str]:
     s = candidate.strip()
     if not s:
@@ -638,12 +660,16 @@ def extract(page_url: str, final_url: str, status_code, content: bytes, error=No
         xrt = headers.get("x-robots-tag") or headers.get("X-Robots-Tag") or ""
         pd.x_robots_tag = str(xrt).strip()
 
-    # 极端/无法验证承诺用语：引用原文片段作证据
+    # 极端/无法验证承诺用语：除命中词外，附所在原文句子，便于直接定位那句话
     claims: List[str] = []
+    seen: set = set()
     for m in EXTREME_CLAIM_RE.finditer(text):
         frag = m.group(0)
-        if frag not in claims:
-            claims.append(frag)
+        if frag in seen:
+            continue
+        seen.add(frag)
+        ctx = _sentence_around(text, m.start(), len(frag))
+        claims.append(f"{frag}｜所在句子：{ctx}" if ctx else frag)
         if len(claims) >= 8:
             break
     pd.extreme_claims = claims
