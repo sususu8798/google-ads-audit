@@ -226,10 +226,10 @@ td .ico, th .ico { vertical-align: -2.5px; }
 /* 全维度依次展示：块间用细分割线区隔 */
 .dd-block { padding: 16px 18px; margin-bottom: 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; }
 .dd-block:last-child { margin-bottom: 0; }
-.dd-head { display: flex; justify-content: center; align-items: baseline; gap: 12px; font-size: 18px; margin-bottom: 8px; }
-.dd-head .dd-name { font-weight: 800; letter-spacing: .3px; }
-.dd-head .dd-score { font-size: 12.5px; color: var(--text-faint); font-weight: 600; letter-spacing: .5px; }
-.dd-head .dd-score b { font-size: 24px; font-weight: 800; color: var(--text); }
+.dd-head { display: flex; justify-content: center; align-items: baseline; gap: 14px; font-size: 22px; margin-bottom: 10px; }
+.dd-head .dd-name { font-weight: 500; color: var(--text); }
+.dd-head .dd-score { font-size: 14px; color: var(--text-faint); font-weight: 500; }
+.dd-head .dd-score b { font-size: 27px; font-weight: 700; }
 .dd-bar { max-width: 380px; margin: 0 auto; }
 .dd-desc { font-size: 12px; color: var(--text-soft); text-align: center; margin-top: 8px; line-height: 1.5; }
 .dd-list { margin-top: 10px; display: flex; flex-direction: column; }
