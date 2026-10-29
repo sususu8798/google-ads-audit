@@ -180,7 +180,10 @@ function dimDetailHTML(dim, findings, dims) {
     const ic = f.status === "pass" ? icon("checkCircle", 18) : f.status === "fail" ? icon("alert", 18) : icon("helpCircle", 18);
     const desc = (f.evidence && f.evidence[0] && f.evidence[0].text) || (f.recommendation && f.recommendation[0]) || "";
     const recAll = (f.recommendation || []).map(r => `<li>${esc(r)}</li>`).join("");
+    // 第 1 条证据已在折叠行显示为摘要，展开区只列出其余明细（如缺失 ALT 的图片地址、各 H1 原文）
+    const evRest = (f.evidence || []).slice(1).map(e => `<div class="dd-ev">${esc(e.text)}</div>`).join("");
     const detail = `<div class="dd-x">
+        ${evRest ? `<div class="dd-x-sec"><div class="dd-x-label">明细</div>${evRest}</div>` : ""}
         ${recAll ? `<div class="dd-x-sec"><div class="dd-x-label">整改建议</div><ul class="dd-x-rec">${recAll}</ul></div>` : ""}
         <div class="dd-x-meta"><span>整改责任人：${esc(f.owner || "网建人员")}</span>${f.method ? `<span>检测方法：${esc(f.method)}</span>` : ""}</div>
       </div>`;
