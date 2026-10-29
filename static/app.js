@@ -339,42 +339,10 @@ function findingsBlock(findings, mountId, filterEl, pageUrl) {
   }));
 }
 
-function pageSummaryHTML(ps) {
-  if (!ps) return `<div class="notice warn">页面未成功抓取，无法生成页面质量评分与证据（详见抓取状态）。</div>`;
-  const rows = [
-    ["页面标题", ps.title || "—"],
-    ["H1", (ps.h1 || []).join(" / ") || "—"],
-    ["Meta 描述", ps.meta_description ? (ps.meta_description.length > 80 ? ps.meta_description.slice(0, 80) + "…" : ps.meta_description) : "—"],
-    ["Canonical", ps.canonical ? `<a href="${esc(ps.canonical)}" target="_blank" rel="noopener" title="${esc(ps.canonical)}">${esc(ps.canonical)}</a>` : "—", true],
-    ["Viewport", ps.viewport || "—"],
-    ["图片 ALT", (() => {
-      const withAlt = ps.images_with_alt || 0;
-      const missing = ps.images_missing_alt || 0;
-      const content = withAlt + missing;            // 被认定为内容图的数量
-      const total = ps.images_total || 0;
-      const decor = ps.images_decorative || 0;
-      const empty = ps.images_empty_src || 0;
-      if (content > 0) return `内容图 ${withAlt}/${content} 有 ALT（缺失 ${missing}）`;
-      if (total === 0) return `页面无 <img> 标签`;
-      return `内容图 0 张可评（页面 img 共 ${total}：装饰/图标 ${decor}、空占位 ${empty}；JS 注入的图片静态抓取不可见）`;
-    })()],
-    ["表单", ps.forms ? `表单 ${ps.forms} 个，输入 ${ps.form_inputs} 项，含提交：${ps.form_has_submit ? "是" : "否"}` : "无"],
-    ["链接", `内 ${ps.links_internal} / 外 ${ps.links_external}`],
-    ["正文量", `${fmtNum(ps.word_count)} 词/字`],
-    ["电话", (ps.phones || []).join(", ") || "—"],
-    ["邮箱", (ps.emails || []).join(", ") || "—"],
-    ["认证", (ps.certs || []).join(", ") || "—"],
-    ["规格参数", (ps.specs || []).join(", ") || "—"],
-    ["页面体积", `${(ps.page_bytes / 1024).toFixed(1)} KB`],
-  ];
-  return `<div class="kv">${rows.map(([k, v, isHtml]) => `<div class="item"><span class="k">${esc(k)}</span><span class="v">${isHtml ? v : esc(v)}</span></div>`).join("")}</div>`;
-}
-
 function renderSingle(r) {
   const box = $("#su-result");
   const f = r.fetch || {};
   const sc = r.score || {};
-  const adOn = !!(r.input && (r.input.ad_headlines && r.input.ad_headlines.length || r.input.ad_descriptions && r.input.ad_descriptions.length));
   const recs = (r.records || []).length;
 
   box.innerHTML = `
@@ -395,13 +363,6 @@ function renderSingle(r) {
       ${dimBars(sc.dimensions)}
     </div>
   </div>
-
-  <details class="panel fold">
-    <summary class="section-title">${icon("compass", 17)} 页面概览</summary>
-    <div class="section-sub" style="margin-top:6px">${adOn ? "已提供广告上下文，已启用「广告—页面相关性」联合诊断。" : "未提供广告数据，广告—页面相关性维度显示「缺少投放数据」，不参与总分。"}</div>
-    ${pageSummaryHTML(r.page_summary)}
-    <div class="muted-block" style="margin-top:10px">注：电话 / 邮箱 / 认证 / 规格为<b>自动识别</b>，建议人工核对；未识别到不代表页面绝对缺失（<b>JS 异步加载的表格、图片中的信息无法读取</b>）。</div>
-  </details>
 
   <div class="panel">
     <div class="section-title">${icon("search", 17)} 问题清单与证据</div>
@@ -555,12 +516,6 @@ function renderTable() {
 
 function renderExpand(el, u, idx) {
   el.innerHTML = `<div style="padding:18px">
-    <details class="fold fold-inline">
-      <summary class="subhead">页面概览</summary>
-      ${pageSummaryHTML(u.page_summary)}
-      <div class="muted-block" style="margin-top:10px">注：电话 / 邮箱 / 认证 / 规格为自动识别，建议人工核对；未识别到不代表页面绝对缺失（JS 异步加载的表格、图片中的信息无法读取）。</div>
-    </details>
-    <div class="divider"></div>
     <div class="subhead">检测结果（${u.findings.length} 项）</div>
     <div id="exp-findings-${idx}"></div>
   </div>`;
@@ -584,7 +539,7 @@ function renderReport(data) {
   $("#rp-result").innerHTML = `
     <div class="panel">
       <div class="section-title">${icon("target", 17)} URL 机会排序</div>
-      <div class="section-sub">按花费、转化、页面评分排序。点击 URL 展开明细（证据 / 页面概览 / 问题清单）。</div>
+      <div class="section-sub">按花费、转化、页面评分排序。点击 URL 展开明细（证据 / 问题清单）。</div>
       <div class="table-tools">
         <input type="text" class="search-input" id="rp-search" placeholder="搜索 URL…">
         <span class="muted-block" id="rp-count"></span>
@@ -754,7 +709,7 @@ function renderBatch(data) {
   $("#bt-result").innerHTML = `
     <div class="panel">
       <div class="section-title">${icon("target", 17)} 批量检测概览</div>
-      <div class="section-sub">共提交 ${s.total} 个 URL，按页面分 / 优先级排序。点击 URL 展开明细（证据 / 页面概览 / 问题清单）。</div>
+      <div class="section-sub">共提交 ${s.total} 个 URL，按页面分 / 优先级排序。点击 URL 展开明细（证据 / 问题清单）。</div>
       <div class="stat-grid">
         <div class="stat"><div class="k">URL 数</div><div class="v">${s.total}</div></div>
         <div class="stat"><div class="k">抓取成功</div><div class="v">${s.fetch_ok ?? "—"}</div></div>
