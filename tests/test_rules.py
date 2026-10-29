@@ -274,3 +274,30 @@ def test_title_len_40_60():
     assert _r_title_len(mk("x" * 61), None)[0] == "fail"      # 边界
     assert _r_title_len(mk("x" * 40), None)[0] == "pass"      # 边界
     assert _r_title_len(mk("x" * 60), None)[0] == "pass"      # 边界
+
+
+def test_meta_desc_len_by_language():
+    """TECH-003 描述长度：英文 120–160 字符，中文 60–100 字符（2026-10-29 用户要求）。"""
+    from src.html_extract import PageData
+    from src.rules import _r_meta_desc
+    def mk(t):
+        return PageData(url="u", final_url="u", status_code=200, meta_description=t)
+    en = "Semi automatic powder filling machine for small output and large specifications with stable packing quality."
+    assert len(en) == 108  # 基准串长度（<120，英文过短）
+    assert _r_meta_desc(mk(en), None)[0] == "fail"          # 英文过短（自然语句）
+    assert _r_meta_desc(mk("x" * 120), None)[0] == "pass"  # 英文下边界
+    assert _r_meta_desc(mk("x" * 160), None)[0] == "pass"  # 英文上边界
+    assert _r_meta_desc(mk("x" * 161), None)[0] == "fail"  # 英文过长
+    assert _r_meta_desc(mk("粉" * 59), None)[0] == "fail"   # 中文过短
+    assert _r_meta_desc(mk("粉" * 60), None)[0] == "pass"   # 中文下边界
+    assert _r_meta_desc(mk("粉" * 100), None)[0] == "pass"  # 中文上边界
+    assert _r_meta_desc(mk("粉" * 101), None)[0] == "fail"  # 中文过长
+    # 中英混排：中文字符占比 ≥30% 按中文标准
+    mixed = "半自动粉剂包装机 " + "x" * 20
+    assert _r_meta_desc(mk(mixed), None)[0] == "fail"      # 29 字符 < 中文下限 60
+    s = _r_meta_desc(mk("粉" * 80), None)[0]
+    assert s == "pass"
+    # 缺失/异常
+    assert _r_meta_desc(mk(""), None)[0] == "fail"
+    pd = PageData(url="u", final_url="u", status_code=0, error="x")
+    assert _r_meta_desc(pd, None)[0] == "not_detected"
