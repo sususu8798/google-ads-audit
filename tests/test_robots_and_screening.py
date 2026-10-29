@@ -98,8 +98,27 @@ def test_r_exaggeration_quotes_matched_phrases():
                   extreme_claims=["全球领先", "100%", "保证"])
     status, ev, sug, _ = _r_exaggeration(pd, None)
     assert status == "fail"
-    assert "全球领先" in ev[0]["text"]
+    joined = "".join(e["text"] for e in ev)
+    assert "全球领先" in joined and "100%" in joined
     assert "人工" in "".join(sug)
+
+
+def test_r_exaggeration_lists_sentence_context():
+    """TRUST-004 命中时逐条列出证据并附所在原文句子，便于定位。"""
+    from src.rules import _r_exaggeration
+    from src.html_extract import extract, PageData
+    pd = PageData(url="u", final_url="u", status_code=200,
+                  extreme_claims=["100%｜所在句子：Labeling accuracy up to 100% for carton boxes"])
+    status, ev, sug, _ = _r_exaggeration(pd, None)
+    assert status == "fail"
+    joined = "".join(e["text"] for e in ev)
+    assert "所在句子" in joined
+    assert "Labeling accuracy up to 100%" in joined
+    # 真实 HTML 提取也应带出句子上下文
+    html = "<p>Our labeling machine achieves 100% accuracy on cartons.</p>".encode()
+    pd2 = extract("u", "u", 200, html)
+    assert pd2.extreme_claims and "所在句子" in pd2.extreme_claims[0]
+    assert "accuracy" in pd2.extreme_claims[0]
 
 
 def test_r_exaggeration_clean_passes():
