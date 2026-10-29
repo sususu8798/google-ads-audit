@@ -536,9 +536,7 @@ def _r_exaggeration(p: PageData, ad: Optional[AdContext]):
         return "not_detected", [ev("trust", "未获取页面")], ["抓取后筛查宣传用语"], 0.4
     if p.extreme_claims:
         evids = [ev("trust", f"检测到 {len(p.extreme_claims)} 处极端/无法验证承诺用语，逐条如下（附所在原文句子）：")]
-        evids += [ev("trust", c) for c in p.extreme_claims[:6]]
-        if len(p.extreme_claims) > 6:
-            evids.append(ev("trust", f"…另有 {len(p.extreme_claims) - 6} 处未列出"))
+        evids += [ev("trust", c) for c in p.extreme_claims]
         # 命中≠违规（可能只是工序功能描述），交人工核对，不计入未达标
         return (
             "not_detected",
@@ -565,8 +563,8 @@ def _r_ad_headline(p: PageData, ad: Optional[AdContext]):
         ok = any(w in text for w in words)
         (matched if ok else missing).append(h[:60])
     if matched:
-        return "pass", [ev("ad_headline", f"以下广告标题关键词在页面找到对应：{'; '.join(matched[:3])}")], ["保持广告与页面主题一致"], 0.6
-    return "fail", [ev("ad_headline", f"广告标题未在页面找到明显对应：{'; '.join(missing[:3])}")], ["使页面包含广告承诺的产品/服务关键词，或调整广告定向"], 0.6
+        return "pass", [ev("ad_headline", f"以下广告标题关键词在页面找到对应：{'; '.join(matched)}")], ["保持广告与页面主题一致"], 0.6
+    return "fail", [ev("ad_headline", f"广告标题未在页面找到明显对应：{'; '.join(missing)}")], ["使页面包含广告承诺的产品/服务关键词，或调整广告定向"], 0.6
 
 
 def _r_ad_desc(p: PageData, ad: Optional[AdContext]):
@@ -580,7 +578,7 @@ def _r_ad_desc(p: PageData, ad: Optional[AdContext]):
             missing.append(d[:60])
     if not missing:
         return "pass", [ev("ad_description", "广告描述承诺在页面中找到对应内容")], ["保持承诺可兑现"], 0.6
-    return "fail", [ev("ad_description", f"广告描述未在页面找到对应：{'; '.join(missing[:3])}")], ["确保页面兑现广告描述中的具体承诺（规格/价格/交期/认证）"], 0.6
+    return "fail", [ev("ad_description", f"广告描述未在页面找到对应：{'; '.join(missing)}")], ["确保页面兑现广告描述中的具体承诺（规格/价格/交期/认证）"], 0.6
 
 
 def _r_ad_product(p: PageData, ad: Optional[AdContext]):
