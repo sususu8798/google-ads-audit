@@ -262,7 +262,17 @@ function pageSummaryHTML(ps) {
     ["Meta 描述", ps.meta_description ? (ps.meta_description.length > 80 ? ps.meta_description.slice(0, 80) + "…" : ps.meta_description) : "—"],
     ["Canonical", ps.canonical ? `<a href="${esc(ps.canonical)}" target="_blank" rel="noopener" title="${esc(ps.canonical)}">${esc(ps.canonical)}</a>` : "—", true],
     ["Viewport", ps.viewport || "—"],
-    ["图片 ALT", `${ps.images_with_alt}/${ps.images_total}（缺失 ${ps.images_missing_alt}）`],
+    ["图片 ALT", (() => {
+      const withAlt = ps.images_with_alt || 0;
+      const missing = ps.images_missing_alt || 0;
+      const content = withAlt + missing;            // 被认定为内容图的数量
+      const total = ps.images_total || 0;
+      const decor = ps.images_decorative || 0;
+      const empty = ps.images_empty_src || 0;
+      if (content > 0) return `内容图 ${withAlt}/${content} 有 ALT（缺失 ${missing}）`;
+      if (total === 0) return `页面无 <img> 标签`;
+      return `内容图 0 张可评（页面 img 共 ${total}：装饰/图标 ${decor}、空占位 ${empty}；JS 注入的图片静态抓取不可见）`;
+    })()],
     ["表单", ps.forms ? `表单 ${ps.forms} 个，输入 ${ps.form_inputs} 项，含提交：${ps.form_has_submit ? "是" : "否"}` : "无"],
     ["链接", `内 ${ps.links_internal} / 外 ${ps.links_external}`],
     ["正文量", `${fmtNum(ps.word_count)} 词/字`],
