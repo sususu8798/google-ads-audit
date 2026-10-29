@@ -521,8 +521,9 @@ def _r_exaggeration(p: PageData, ad: Optional[AdContext]):
         evids += [ev("trust", c) for c in p.extreme_claims[:6]]
         if len(p.extreme_claims) > 6:
             evids.append(ev("trust", f"…另有 {len(p.extreme_claims) - 6} 处未列出"))
+        # 命中≠违规（可能只是工序功能描述），交人工核对，不计入未达标
         return (
-            "fail",
+            "not_detected",
             evids,
             ["逐条人工确认这些表述是否有证据支撑；广告法禁用「最」「第一」「100%」等绝对化用语，"
              "无法验证的承诺建议改为可核实的具体参数或第三方证明"],
