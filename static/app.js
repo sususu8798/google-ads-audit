@@ -633,7 +633,7 @@ $("#rp-submit").addEventListener("click", async () => {
 ============================================================ */
 const COLS_BATCH = [
   ["final_url", "落地页 URL", "url"], ["page_score", "页面分", "score"],
-  ["status", "抓取", "status"], ["priority", "优先级", "priority"]
+  ["status", "抓取", "status"]
 ];
 let batchUrls = [];
 let batchSortKey = "page_score", batchSortDir = -1;
@@ -672,7 +672,6 @@ function renderBatchTable() {
       </div></td>
       <td class="nowrap">${badge(scCls, sc)}</td>
       <td class="nowrap">${status}</td>
-      <td class="nowrap">${prioBadge(u.priority)}</td>
     </tr>
     <tr class="expand-row hidden" data-exp="${i}"><td colspan="${COLS_BATCH.length}"><div class="expand-inner" id="bt-exp-${i}"></div></td></tr>`;
   }).join("");
@@ -723,7 +722,7 @@ function renderBatch(data) {
   $("#bt-result").innerHTML = `
     <div class="panel">
       <div class="section-title">${icon("target", 17)} 批量检测概览</div>
-      <div class="section-sub">共提交 ${s.total} 个 URL，按页面分 / 优先级排序。点击 URL 展开明细（证据 / 问题清单）。</div>
+      <div class="section-sub">共提交 ${s.total} 个 URL，按页面分排序。点击 URL 展开明细（证据 / 问题清单）。</div>
       <div class="stat-grid">
         <div class="stat"><div class="k">URL 数</div><div class="v">${s.total}</div></div>
         <div class="stat"><div class="k">抓取成功</div><div class="v">${s.fetch_ok ?? "—"}</div></div>
