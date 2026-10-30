@@ -179,7 +179,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dropzone .formats { margin-top: 10px; font-size: 11.5px; color: var(--text-faint); }
 
 /* ---------- Score ring ---------- */
-.score-hero { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.score-hero { display: flex; flex-direction: column; align-items: center; gap: 18px; }
 .ring-wrap { flex: none; display: flex; flex-direction: column; align-items: center; gap: 12px; }
 .ring { position: relative; width: 168px; height: 168px; }
 .ring svg { transform: rotate(-90deg); }
@@ -194,7 +194,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .ring-legend .lg-ci::before { width: 9px; height: 9px; border-radius: 50%; background: var(--green-chart); }
 
 /* webuup 排版：六维横向网格卡片（可点击定位到问题清单对应维度） */
-.dim-grid { flex: 1; min-width: 300px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 24px; align-content: center; }
+.dim-grid { flex: 1; width: 100%; min-width: 300px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 28px; align-content: center; }
 .dim-cell { cursor: pointer; padding: 9px 12px 8px; border: 1px solid transparent; border-radius: 8px; transition: background .15s, border-color .15s; }
 .dim-cell:hover { background: var(--surface-2); border-color: var(--border); }
 .dim-cell.active { background: var(--blue-soft); border-color: var(--primary); }
@@ -207,6 +207,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .bar > i { display: block; height: 100%; border-radius: 999px; background: var(--primary); transition: width .6s ease; }
 .dim-note { font-size: 11.5px; color: var(--text-faint); margin-top: 4px; }
 .dim-warn { color: var(--amber); }
+@media (max-width: 900px) { .dim-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 560px) { .dim-grid { grid-template-columns: 1fr; } }
 
 /* 维度定位详情（webuup 式条目清单）：维度名+得分+说明+绿勾/红标清单 */
