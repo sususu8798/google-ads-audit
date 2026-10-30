@@ -141,8 +141,7 @@ function dimBars(dimensions) {
     if (d.score == null) {
       return `<div class="dim-cell" data-dim="${esc(key)}" role="button" title="点击查看该维度检测项">
         <div class="dim-top"><span class="name">${esc(d.label)}</span><span class="num dim-warn">${esc(d.note || "未评估")}</span></div>
-        <div class="bar"><i style="width:0%"></i></div>
-        <div class="dim-note dim-warn">暂无可评估项</div></div>`;
+        <div class="bar"><i style="width:0%"></i></div></div>`;
     }
     const color = d.score >= 80 ? "var(--green-chart)" : d.score >= 60 ? "var(--amber-chart)" : "var(--red-chart)";
     const pts = Math.round(d.score * (d.weight || 0) / 100);
