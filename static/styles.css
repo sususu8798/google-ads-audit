@@ -216,7 +216,7 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dd-block { padding: 16px 0 18px; margin-bottom: 16px; border-bottom: 1px solid var(--border); }
 .dd-block:last-child { margin-bottom: 0; border-bottom: none; }
 .dd-head { display: flex; justify-content: center; align-items: baseline; gap: 14px; font-size: 26px; margin-bottom: 10px; }
-.dd-head .dd-name { font-weight: 500; color: var(--text); }
+.dd-head .dd-name { font-weight: 400; color: var(--text); }
 .dd-head .dd-score { font-size: 15px; color: var(--text-faint); font-weight: 500; }
 .dd-head .dd-score b { font-size: 30px; font-weight: 700; }
 .dd-bar { max-width: 380px; margin: 0 auto; }
