@@ -197,10 +197,10 @@ td .ico, th .ico { vertical-align: -2.5px; }
 .dim-grid { flex: 1; width: 100%; min-width: 300px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 28px; align-content: center; }
 .dim-cell { cursor: pointer; padding: 9px 12px 8px; border: 1px solid transparent; border-radius: 8px; transition: background .15s, border-color .15s; }
 .dim-cell.active { background: var(--blue-soft); border-color: var(--primary); }
-.dim-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 15px; margin-bottom: 6px; }
+.dim-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 17px; margin-bottom: 6px; }
 .dim-top .name { font-weight: 400; color: var(--text); }
-.dim-top .num { color: var(--text-faint); font-size: 15px; }
-.dim-top .num b { font-size: 18px; font-weight: 700; }
+.dim-top .num { color: var(--text-faint); font-size: 17px; }
+.dim-top .num b { font-size: 21px; font-weight: 700; }
 /* webuup 风格维度条：更粗（12px）、全圆角胶囊、灰底 */
 .bar { height: 12px; background: var(--gray-soft); border-radius: 999px; overflow: hidden; }
 .bar > i { display: block; height: 100%; border-radius: 999px; background: var(--primary); transition: width .6s ease; }
