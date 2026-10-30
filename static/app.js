@@ -148,8 +148,7 @@ function dimBars(dimensions) {
     const pts = Math.round(d.score * (d.weight || 0) / 100);
     return `<div class="dim-cell" data-dim="${esc(key)}" role="button" title="点击查看该维度检测项">
       <div class="dim-top"><span class="name">${esc(d.label)}</span><span class="num"><b style="color:${color}">${pts}</b>/${d.weight}</span></div>
-      <div class="bar"><i style="width:${d.score}%;background:${color}"></i></div>
-      <div class="dim-note">通过 ${d.passed}/${d.applicable}${d.not_detected ? ` · 需人工核对 ${d.not_detected}` : ""}</div></div>`;
+      <div class="bar"><i style="width:${d.score}%;background:${color}"></i></div></div>`;
   }).join("") + `</div>`;
 }
 
