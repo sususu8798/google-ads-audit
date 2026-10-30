@@ -197,25 +197,59 @@ function dimDetailHTML(dim, findings, dims) {
     + `<div class="dd-list">${rows}</div>`;
 }
 
-/* 报告渲染后依次展示全部 6 个维度的详情清单（webuup 式，无需点击切换） */
-function renderAllDimDetails(result) {
+/* 在指定挂载点依次渲染全部 6 个维度的详情清单（webuup 式），并绑定手风琴与维度卡定位。
+   result 结构同单 URL：{ score:{dimensions}, findings, ... } */
+function renderDimDetails(mount, result) {
+  if (!mount) return;
   const dims = (result && result.score && result.score.dimensions) || {};
   const findings = (result && result.findings) || [];
-  const dd = $("#su-dim-detail");
-  if (!dd) return;
-  dd.innerHTML = Object.entries(dims).slice().sort((a, b) => (b[1].weight || 0) - (a[1].weight || 0)).map(([dim]) =>
-    `<div class="dd-block" id="dd-${dim}">${dimDetailHTML(dim, findings, dims)}</div>`).join("");
+  mount.innerHTML = Object.entries(dims).slice().sort((a, b) => (b[1].weight || 0) - (a[1].weight || 0)).map(([dim]) =>
+    `<div class="dd-block" data-dim-block="${dim}">${dimDetailHTML(dim, findings, dims)}</div>`).join("");
   // 条目点击 → 原地展开/收起详细信息（手风琴，同维度内互斥）
-  $$(".dd-item", dd).forEach(item => item.addEventListener("click", () => {
+  $$(".dd-item", mount).forEach(item => item.addEventListener("click", () => {
     const wasOpen = item.classList.contains("open");
-    $$(".dd-item.open", item.closest(".dd-list")).forEach(el => el.classList.remove("open"));
+    const list = item.closest(".dd-list");
+    if (list) $$(".dd-item.open", list).forEach(el => el.classList.remove("open"));
     if (!wasOpen) item.classList.add("open");
   }));
-  // 上方维度卡点击 → 平滑滚动到对应维度详情块
-  $$(".dim-cell").forEach(cell => cell.addEventListener("click", () => {
-    const block = document.getElementById("dd-" + cell.dataset.dim);
+  // 上方维度卡点击 → 平滑滚动到对应维度详情块（作用域限定在 mount 内，避免多行展开时 id 冲突）
+  $$(".dim-cell", mount).forEach(cell => cell.addEventListener("click", () => {
+    const block = mount.querySelector('[data-dim-block="' + cell.dataset.dim + '"]');
     if (block) block.scrollIntoView({ behavior: "smooth", block: "start" });
   }));
+}
+
+/* 把单 URL 形式的报告（圆环评分 + 六维条 + 维度详情）渲染进任意容器，
+   供多条 URL / 广告报表模式展开某行时复用，与单 URL 模式视觉一致。 */
+function renderExpandedDetail(mount, u) {
+  const sc = u.score || {};
+  const f = u.fetch || {};
+  const pseudo = { score: sc, findings: u.findings || [], fetch: f, input: { url: u.final_url }, url: u.final_url };
+  const hasIssue = (u.findings || []).some(x => x.status === "fail" || x.status === "not_detected");
+  mount.innerHTML = `<div style="padding:16px 18px">
+    <div class="panel">
+      <div class="section-sub">落地页：${esc(u.final_url)}</div>
+      ${f.error ? `<div class="notice error">抓取错误：${esc(f.error)}</div>` : ""}
+      ${f.redirect_chain && f.redirect_chain.length > 1 ? `<div class="notice info">跳转链：${f.redirect_chain.map(esc).join(" → ")}</div>` : ""}
+      <div class="divider"></div>
+      <div class="score-hero">
+        ${scoreRing(sc.overall_score, sc.score_complete)}
+        ${dimBars(sc.dimensions)}
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="section-title">${icon("search", 17)} 问题清单与证据</div>
+        ${hasIssue ? `<button class="btn copy-top exp-copy">${icon("clipboard", 16)} 复制整改项</button>` : ""}
+      </div>
+      <div class="exp-dim-detail"></div>
+    </div>
+  </div>`;
+  renderDimDetails(mount.querySelector(".exp-dim-detail"), pseudo);
+  const cp = mount.querySelector(".exp-copy");
+  if (cp) cp.addEventListener("click", () => {
+    copyTextToClipboard(buildCopyText(u.findings || [], ["fail", "not_detected"], u.final_url || ""), cp);
+  });
 }
 
 function findingCard(f) {
@@ -352,7 +386,7 @@ function renderSingle(r) {
     </div>
     <div id="su-dim-detail"></div>
   </div>`;
-  renderAllDimDetails(r);
+  renderDimDetails($("#su-dim-detail"), r);
   // 面板右上角大按钮：复制整改项（未达标 + 需人工核对）
   const topCopy = $("#su-copy-top");
   if (topCopy) topCopy.addEventListener("click", () => {
@@ -499,11 +533,7 @@ function renderTable() {
 }
 
 function renderExpand(el, u, idx) {
-  el.innerHTML = `<div style="padding:18px">
-    <div class="subhead">检测结果（${u.findings.length} 项）</div>
-    <div id="exp-findings-${idx}"></div>
-  </div>`;
-  findingsBlock(u.findings, `#exp-findings-${idx}`, null, u.final_url || "");
+  renderExpandedDetail(el, u);
 }
 
 function sortUrls() {
