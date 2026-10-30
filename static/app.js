@@ -198,8 +198,9 @@ function dimDetailHTML(dim, findings, dims) {
 }
 
 /* 在指定挂载点依次渲染全部 6 个维度的详情清单（webuup 式），并绑定手风琴与维度卡定位。
-   result 结构同单 URL：{ score:{dimensions}, findings, ... } */
-function renderDimDetails(mount, result) {
+   result 结构同单 URL：{ score:{dimensions}, findings, ... }
+   scope：包含「六维卡 + 本详情挂载点」的共同容器（维度卡不在 mount 内，必须显式给作用域） */
+function renderDimDetails(mount, result, scope) {
   if (!mount) return;
   const dims = (result && result.score && result.score.dimensions) || {};
   const findings = (result && result.findings) || [];
@@ -212,8 +213,8 @@ function renderDimDetails(mount, result) {
     if (list) $$(".dd-item.open", list).forEach(el => el.classList.remove("open"));
     if (!wasOpen) item.classList.add("open");
   }));
-  // 上方维度卡点击 → 平滑滚动到对应维度详情块（作用域限定在 mount 内，避免多行展开时 id 冲突）
-  $$(".dim-cell", mount).forEach(cell => cell.addEventListener("click", () => {
+  // 维度卡点击 → 平滑滚动到对应维度详情块（作用域限定，避免多行展开时互相干扰）
+  $$(".dim-cell", scope || mount).forEach(cell => cell.addEventListener("click", () => {
     const block = mount.querySelector('[data-dim-block="' + cell.dataset.dim + '"]');
     if (block) block.scrollIntoView({ behavior: "smooth", block: "start" });
   }));
@@ -245,7 +246,7 @@ function renderExpandedDetail(mount, u) {
       <div class="exp-dim-detail"></div>
     </div>
   </div>`;
-  renderDimDetails(mount.querySelector(".exp-dim-detail"), pseudo);
+  renderDimDetails(mount.querySelector(".exp-dim-detail"), pseudo, mount);
   const cp = mount.querySelector(".exp-copy");
   if (cp) cp.addEventListener("click", () => {
     copyTextToClipboard(buildCopyText(u.findings || [], ["fail", "not_detected"], u.final_url || ""), cp);
@@ -386,7 +387,7 @@ function renderSingle(r) {
     </div>
     <div id="su-dim-detail"></div>
   </div>`;
-  renderDimDetails($("#su-dim-detail"), r);
+  renderDimDetails($("#su-dim-detail"), r, box);
   // 面板右上角大按钮：复制整改项（未达标 + 需人工核对）
   const topCopy = $("#su-copy-top");
   if (topCopy) topCopy.addEventListener("click", () => {
